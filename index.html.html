@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FDF6F0">
+<title>Uplift</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5EBE2;
+    --blush: #F2D9CE;
+    --blush-mid: #E8B9A5;
+    --terra: #C46B4A;
+    --terra-dark: #8C3D22;
+    --terra-deep: #5C2210;
+    --warm-white: #FFFAF6;
+    --text-dark: #2C1A12;
+    --text-mid: #7A4A36;
+    --text-soft: #B07A66;
+    --text-hint: #D4A898;
+    --border: rgba(196, 107, 74, 0.15);
+    --border-mid: rgba(196, 107, 74, 0.25);
+    --success: #6B9E7A;
+    --success-bg: #EBF5EE;
+    --pink: #E8A0B0;
+    --pink-bg: #FBF0F3;
+    --amber: #D4A054;
+    --amber-bg: #FBF4E8;
+    --sage: #8FAF8A;
+    --sage-bg: #EFF5EE;
+    --font-serif: 'Lora', Georgia, serif;
+    --font-sans: 'DM Sans', sans-serif;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
+  }
+
+  body.night-mode {
+    --cream: #0D1628;
+    --warm-white: #111E36;
+    --blush: #1A2A4A;
+    --blush-mid: #243558;
+    --terra: #7B9ED9;
+    --terra-dark: #A8C4F0;
+    --terra-deep: #C8DCFF;
+    --text-dark: #E8F0FF;
+    --text-mid: #A8BED8;
+    --text-soft: #7090B8;
+    --text-hint: #4A6888;
+    --border: rgba(120, 160, 220, 0.15);
+    --border-mid: rgba(120, 160, 220, 0.28);
+  }
+
+  body.night-mode .tag-phase     { background: #1E3A6E; color: #A8C4F0; }
+  body.night-mode .tag-flow      { background: #1E3A6E; color: #A8C4F0; }
+  body.night-mode .tag-food      { background: #2A1A5E; color: #B8A4F0; }
+  body.night-mode .tag-nutrition { background: #2A1A5E; color: #B8A4F0; }
+  body.night-mode .tag-sym       { background: #3A1A5A; color: #D4A8F0; }
+  body.night-mode .tag-dream     { background: #3A1A5A; color: #D4A8F0; }
+  body.night-mode .tag-sleep     { background: #2E6A9E; color: #D8EEFF; }
+  body.night-mode .tag-exercise  { background: #1A3060; color: #90B8F0; }
+  body.night-mode .tag-mood      { background: #241848; color: #C0A8F8; }
+  body.night-mode .tag-energy    { background: #241848; color: #C0A8F8; }
+  body.night-mode .tag-garmin    { background: #0A1830; color: #5A88B8; }
+  body.night-mode .tag-hr        { background: #0A1830; color: #5A88B8; }
+  body.night-mode .tag-stress    { background: #0A1830; color: #5A88B8; }
+
+  body.night-mode .save-btn      { background: #3A6ABE; }
+  body.night-mode .save-btn:hover { background: #4A7ACE; }
+  body.night-mode .nav-btn.active { color: #7B9ED9; }
+  body.night-mode .phase-btn.sel-menstrual { background: #2A1A5E; border-color: #6A4ABE; }
+  body.night-mode .phase-btn.sel-follicular { background: #1A3060; border-color: #4A7ABE; }
+  body.night-mode .phase-btn.sel-ovulation { background: #0E2244; border-color: #3A5A9E; }
+  body.night-mode .phase-btn.sel-luteal { background: #1E3A6E; border-color: #5A8ACE; }
+  body.night-mode .chip.selected { background: #1E3A6E; border-color: #5A8ACE; color: #A8C4F0; }
+  body.night-mode .cat-btn.active { background: #1A2A4A; border-color: #5A8ACE; }
+  body.night-mode .sync-banner.garmin { background: #0E2244; border-color: #3A5A9E; color: #7BAAD8; }
+  body.night-mode .sync-banner.loseit { background: #2A1A5E; border-color: #6A4ABE; color: #B8A4F0; }
+  body.night-mode input[type="range"] { background: #1E3A6E; }
+  body.night-mode input[type="range"]::-webkit-slider-thumb { background: #7B9ED9; }
+  body.night-mode input[type="range"]::-moz-range-thumb { background: #7B9ED9; }
+  body.night-mode input[type="range"]::-webkit-slider-runnable-track { background: #1E3A6E; }
+
+  #star-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0; transition: opacity 1s ease; }
+  body.night-mode #star-canvas { opacity: 1; }
+  #app { position: relative; z-index: 1; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--cream);
+    color: var(--text-dark);
+    height: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    overflow: hidden;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='40'%3E%3Cpath d='M0 35 Q10 25 20 35 Q30 45 40 35 Q50 25 60 35 Q70 45 80 35' fill='none' stroke='%23C46B4A' stroke-width='0.8' stroke-opacity='0.11'/%3E%3Cpath d='M0 15 Q10 5 20 15 Q30 25 40 15 Q50 5 60 15 Q70 25 80 15' fill='none' stroke='%23C46B4A' stroke-width='0.8' stroke-opacity='0.11'/%3E%3Cpath d='M0 -5 Q10 -15 20 -5 Q30 5 40 -5 Q50 -15 60 -5 Q70 5 80 -5' fill='none' stroke='%23C46B4A' stroke-width='0.8' stroke-opacity='0.11'/%3E%3Cpath d='M0 55 Q10 45 20 55 Q30 65 40 55 Q50 45 60 55 Q70 65 80 55' fill='none' stroke='%23C46B4A' stroke-width='0.8' stroke-opacity='0.11'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 80px 40px;
+    transition: background-color 1.5s ease, color 1s ease;
+  }
+
+  html { height: 100%; }
+
+  body.night-mode {
+    background-image: none;
+  }
+
+  /* ── APP SHELL ── */
+  #app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; }
+
+  .screen { display: none; flex: 1; flex-direction: column; min-height: 0; max-height: 100%; overflow: hidden; animation: fadeIn 0.25s ease; }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 430px;
+    background: var(--warm-white);
+    border-top: 0.5px solid var(--border);
+    border-left: 0.5px solid var(--border);
+    border-right: 0.5px solid var(--border);
+    border-radius: var(--radius) var(--radius) 0 0;
+    display: flex; padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: none; border: none; cursor: pointer; padding: 4px;
+    color: var(--text-hint); transition: color 0.2s;
+  }
+  .nav-btn.active { color: var(--terra); }
+  .nav-btn svg { width: 22px; height: 22px; }
+  .nav-btn span { font-size: 16px; font-weight: 500; letter-spacing: 0.03em; }
+
+  /* ── SCROLLABLE CONTENT AREA ── */
+  .scroll-area {
+    flex: 1; min-height: 0; overflow-y: auto; padding: 0 16px calc(80px + env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @media (min-width: 500px) {
+    .page-header h1 { font-size: 34px; }
+    .page-header p { font-size: 16px; }
+    .card-label { font-size: 15px; }
+    .chip { font-size: 15px; padding: 10px 16px; }
+    .phase-btn .phase-name { font-size: 15px; }
+    .phase-btn .phase-desc { font-size: 15px; }
+    .energy-btn { font-size: 15px; }
+    .save-btn { font-size: 19px; padding: 16px; }
+    .rec-title { font-size: 16px; }
+    .rec-desc { font-size: 15px; }
+    .tag { font-size: 15px; padding: 4px 11px; }
+    .nav-btn span { font-size: 16px; }
+    .log-date { font-size: 16px; }
+    .metric-num { font-size: 32px; }
+    .metric-label { font-size: 16px; }
+    .insight-box p { font-size: 19px; }
+    .settings-row label { font-size: 15px; }
+  }
+
+  /* ── HEADER ── */
+  .page-header {
+    padding: 28px 16px 14px;
+    background: var(--cream);
+    flex-shrink: 0;
+  }
+  .page-header h1 { font-family: var(--font-serif); font-size: 30px; font-weight: 400; color: var(--text-dark); }
+  .page-header p { font-size: 16px; color: var(--text-soft); margin-top: 3px; line-height: 1.4; }
+
+  .date-btn {
+    position: relative; display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-xs); background: var(--cream);
+    font-family: var(--font-sans); font-size: 16px; color: var(--text-mid);
+    cursor: pointer;
+  }
+  .date-btn input[type="date"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--warm-white);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+  .card-label {
+    font-size: 15px; font-weight: 500; color: var(--text-soft);
+    letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 12px;
+  }
+
+  /* ── PHASE BUTTONS ── */
+  .phase-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .phase-btn {
+    padding: 12px 8px; border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm); background: var(--cream);
+    cursor: pointer; text-align: center; transition: all 0.15s;
+  }
+  .phase-btn .phase-name { font-size: 15px; font-weight: 500; color: var(--text-mid); display: block; }
+  .phase-btn .phase-desc { font-size: 15px; color: var(--text-hint); display: block; margin-top: 2px; }
+  .phase-btn:hover { border-color: var(--border-mid); }
+  .phase-btn.sel-menstrual { background: var(--pink-bg); border-color: var(--pink); }
+  .phase-btn.sel-menstrual .phase-name { color: #9B3D5A; }
+  .phase-btn.sel-follicular { background: var(--amber-bg); border-color: var(--amber); }
+  .phase-btn.sel-follicular .phase-name { color: #8A5E1A; }
+  .phase-btn.sel-ovulation { background: var(--success-bg); border-color: var(--success); }
+  .phase-btn.sel-ovulation .phase-name { color: #2D6B3E; }
+  .phase-btn.sel-luteal { background: var(--sage-bg); border-color: var(--sage); }
+  .phase-btn.sel-luteal .phase-name { color: #3A5E38; }
+
+  /* ── CHIP GRID ── */
+  .chip-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    padding: 8px 14px; border: 0.5px solid var(--border);
+    border-radius: 20px; background: var(--cream);
+    font-size: 15px; color: var(--text-mid); cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--border-mid); }
+  .chip.selected { background: var(--blush); border-color: var(--blush-mid); color: var(--terra-dark); }
+
+  /* ── ENERGY ROW ── */
+  .energy-row { display: flex; gap: 8px; }
+  .energy-btn {
+    flex: 1; padding: 11px 6px; border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm); background: var(--cream);
+    font-size: 15px; font-weight: 500; color: var(--text-mid);
+    cursor: pointer; text-align: center; transition: all 0.15s;
+  }
+  .energy-btn:hover { border-color: var(--border-mid); }
+  .energy-btn.e-low.selected { background: #F5EEF8; border-color: #C39BD3; color: #6C3483; }
+  .energy-btn.e-moderate.selected { background: var(--amber-bg); border-color: var(--amber); color: #8A5E1A; }
+  .energy-btn.e-high.selected { background: var(--success-bg); border-color: var(--success); color: #2D6B3E; }
+
+  /* ── SAVE BUTTON ── */
+  .save-btn {
+    width: 100%; padding: 15px;
+    background: var(--terra); border: none;
+    border-radius: var(--radius-sm); color: #fff;
+    font-family: var(--font-sans); font-size: 15px; font-weight: 500;
+    cursor: pointer; margin-top: 4px; margin-bottom: 12px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .save-btn:hover { background: var(--terra-dark); }
+  .save-btn:active { transform: scale(0.98); }
+
+  /* ── TRENDS ── */
+  .metric-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .metric-card {
+    background: var(--warm-white); border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px;
+  }
+  .metric-num { font-family: var(--font-serif); font-size: 30px; color: var(--terra); }
+  .metric-label { font-size: 16px; color: var(--text-soft); margin-top: 3px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 70px; padding-top: 4px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end; }
+  .bar-fill { width: 100%; border-radius: 4px 4px 0 0; min-height: 3px; transition: height 0.4s ease; }
+  .bar-day { font-size: 16px; color: var(--text-hint); }
+  .log-item { padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+  .log-item:last-child { border-bottom: none; }
+  .log-date { font-size: 16px; color: var(--text-hint); margin-bottom: 6px; }
+  .log-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag { display: inline-block; font-size: 15px; padding: 3px 9px; border-radius: 12px; font-weight: 500; }
+  .tag-phase     { background: #D4734A; color: #2E0D02; }
+  .tag-flow      { background: #D4734A; color: #2E0D02; }
+  .tag-food      { background: #F2C9A8; color: #6B2E12; }
+  .tag-nutrition { background: #F2C9A8; color: #6B2E12; }
+  .tag-sym       { background: #8C3828; color: #F7E2DC; }
+  .tag-dream     { background: #8C3828; color: #F7E2DC; }
+  .tag-sleep     { background: #EDD0BC; color: #5C2C18; }
+  .tag-exercise  { background: #C45E6A; color: #F7E0EA; }
+  .tag-mood      { background: #E8A898; color: #5C2218; }
+  .tag-energy    { background: #E8A898; color: #5C2218; }
+  .tag-garmin    { background: #543828; color: #EDD8C8; }
+  .tag-hr        { background: #543828; color: #EDD8C8; }
+  .tag-stress    { background: #543828; color: #EDD8C8; }
+  .tag-dailyactivity { background: #B8785A; color: #F5EDE8; }
+
+  /* ── INSIGHTS ── */
+  .insight-box {
+    background: var(--warm-white); border: 0.5px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    margin-bottom: 12px;
+  }
+  .insight-box .insight-eyebrow {
+    font-size: 16px; font-weight: 500; color: var(--terra);
+    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .insight-box p {
+    font-family: var(--font-serif); font-size: 15px; line-height: 1.75;
+    color: var(--text-dark); font-style: italic;
+  }
+  .insight-box p + p { margin-top: 12px; }
+  .insight-loading { color: var(--text-hint); font-style: italic; font-size: 16px; }
+  .refresh-btn {
+    display: flex; align-items: center; gap: 6px; margin-top: 14px;
+    background: none; border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-xs); padding: 8px 14px;
+    font-size: 16px; color: var(--text-mid); cursor: pointer; font-family: var(--font-sans);
+    transition: all 0.15s;
+  }
+  .refresh-btn:hover { background: var(--blush); border-color: var(--blush-mid); }
+
+  /* ── SETTINGS ── */
+  .settings-section { margin-bottom: 20px; }
+  .settings-section h2 { font-family: var(--font-serif); font-size: 19px; font-weight: 400; color: var(--text-dark); margin-bottom: 10px; }
+  .settings-row {
+    background: var(--warm-white); border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 6px;
+  }
+  .settings-row label { font-size: 15px; color: var(--text-mid); display: block; margin-bottom: 8px; }
+  .settings-row input[type="password"], .settings-row input[type="text"] {
+    width: 100%; padding: 10px 12px;
+    border: 0.5px solid var(--border-mid); border-radius: var(--radius-xs);
+    background: var(--cream); font-family: var(--font-sans); font-size: 15px;
+    color: var(--text-dark); outline: none;
+  }
+  .settings-row input:focus { border-color: var(--terra); }
+  .api-hint { font-size: 16px; color: var(--text-hint); margin-top: 8px; line-height: 1.5; }
+  .api-hint a { color: var(--terra); }
+  .save-settings-btn {
+    padding: 11px 20px; background: var(--terra); border: none;
+    border-radius: var(--radius-xs); color: #fff; font-family: var(--font-sans);
+    font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 4px;
+    transition: background 0.15s;
+  }
+  .save-settings-btn:hover { background: var(--terra-dark); }
+  .saved-msg { font-size: 16px; color: var(--success); margin-top: 8px; display: none; }
+
+  /* ── CATEGORY BUTTONS ── */
+  .cat-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    padding: 14px 8px; border: 0.5px solid var(--border);
+    border-radius: var(--radius); background: var(--warm-white);
+    cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .cat-btn:hover { border-color: var(--border-mid); background: var(--cream); }
+  .cat-btn.active { background: var(--blush); border-color: var(--blush-mid); }
+  .cat-btn.active .cat-icon { color: var(--terra-dark); }
+  .cat-btn.active .cat-label { color: var(--terra-dark); }
+  .cat-btn.done { background: #E8908E; border-color: transparent; }
+  .cat-btn.done .cat-icon { color: #5C1018; }
+  .cat-btn.done .cat-label { color: #5C1018; }
+  body.night-mode .cat-btn.done { background: #5E2848; border-color: transparent; }
+  body.night-mode .cat-btn.done .cat-icon { color: #F0BCDC; }
+  body.night-mode .cat-btn.done .cat-label { color: #F0BCDC; }
+  .cat-icon { color: var(--text-soft); display: flex; align-items: center; justify-content: center; }
+  .cat-label { font-size: 16px; font-weight: 500; color: var(--text-soft); }
+  .cat-panel { animation: fadeIn 0.2s ease; }
+
+  /* ── SYNC BANNERS ── */
+  .sync-banner {
+    display: none; margin-bottom: 10px;
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    font-size: 16px; line-height: 1.5;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .sync-banner:hover { opacity: 0.85; }
+  .sync-banner.garmin-banner { background: #FBF4E8; border: 0.5px solid #D4A054; color: #8A5E1A; }
+  .sync-banner.loseit-banner { background: var(--blush); border: 0.5px solid var(--blush-mid); color: var(--terra-dark); }
+  .sync-banner-inner { display: flex; align-items: center; gap: 10px; }
+  .sync-banner-inner span { flex: 1; }
+  .sync-banner-inner .sync-arrow { font-size: 16px; flex-shrink: 0; }
+
+  .rec-section { margin-bottom: 20px; }
+  .rec-section-title {
+    font-size: 15px; font-weight: 500; color: var(--text-soft);
+    letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .rec-section-title::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
+  .rec-card {
+    background: var(--warm-white); border: 0.5px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .rec-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .rec-icon.pink { background: var(--pink-bg); }
+  .rec-icon.orange { background: var(--blush); }
+  .rec-icon.green { background: var(--success-bg); }
+  .rec-icon.amber { background: var(--amber-bg); }
+  .rec-icon.purple { background: #F5EEF8; }
+  .rec-body { flex: 1; }
+  .rec-title { font-size: 16px; font-weight: 500; color: var(--text-dark); margin-bottom: 3px; }
+  .rec-desc { font-size: 15px; color: var(--text-soft); line-height: 1.55; }
+  .rec-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 15px; font-weight: 500; padding: 3px 9px;
+    border-radius: 12px; margin-top: 8px;
+  }
+  .rec-tag.iron     { background: #8C3828; color: #F7E2DC; }
+  .rec-tag.energy   { background: #E8A898; color: #5C2218; }
+  .rec-tag.movement { background: #C45E6A; color: #F7E0EA; }
+  .rec-tag.rest     { background: #EDD0BC; color: #5C2C18; }
+  .rec-tag.selfcare { background: #D4734A; color: #2E0D02; }
+  .rec-tag svg { width: 11px; height: 11px; flex-shrink: 0; }
+  .phase-banner {
+    border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .phase-banner.menstrual { background: #E8A0B0; border: none; }
+  .phase-banner.follicular { background: #C46B4A; border: none; }
+  .phase-banner.ovulation { background: #E8934A; border: none; }
+  .phase-banner.luteal { background: #9B7BB8; border: none; }
+  .phase-banner.unknown { background: var(--color-background-secondary); border: 0.5px solid var(--border); }
+  .phase-banner-text h3 { font-size: 15px; font-weight: 500; color: var(--text-dark); }
+  .phase-banner-text p { font-size: 16px; color: var(--text-soft); margin-top: 2px; line-height: 1.4; }
+  .phase-banner.menstrual .phase-banner-text h3 { color: #3D0018; }
+  .phase-banner.menstrual .phase-banner-text p { color: #5C1028; }
+  .phase-banner.follicular .phase-banner-text h3 { color: #FFFAF6; }
+  .phase-banner.follicular .phase-banner-text p { color: #F5EBE2; }
+  .phase-banner.ovulation .phase-banner-text h3 { color: #3A1400; }
+  .phase-banner.ovulation .phase-banner-text p { color: #5C2A00; }
+  .phase-banner.luteal .phase-banner-text h3 { color: #1A0030; }
+  .phase-banner.luteal .phase-banner-text p { color: #2E0A4A; }
+
+  /* ── SYNC BANNERS ── */
+  .sync-banners-wrap:empty { display: none; }
+  .sync-banners-wrap { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .sync-banner {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: var(--radius-sm);
+    font-size: 15px; line-height: 1.4;
+  }
+  .sync-banner.garmin { background: #FBF4E8; border: 0.5px solid #D4A054; color: #8A5E1A; }
+  .sync-banner.loseit { background: var(--blush); border: 0.5px solid var(--blush-mid); color: var(--terra-dark); }
+  .sync-banner svg { flex-shrink: 0; }
+  .sync-banner-text { flex: 1; }
+  .sync-banner-text strong { font-weight: 500; display: block; font-size: 15px; }
+  .sync-banner-text span { font-size: 16px; opacity: 0.75; }
+  .sync-banner-arrow { font-size: 15px; opacity: 0.5; }
+
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  /* ── EMPTY STATE ── */
+    text-align: center; padding: 40px 20px;
+    color: var(--text-hint); font-size: 16px; line-height: 1.6;
+  }
+  .empty .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.5; }
+
+  /* ── RANGE SLIDER ── */
+  input[type="range"] { -webkit-appearance: none; appearance: none; height: 4px; background: var(--blush); border-radius: 2px; outline: none; cursor: pointer; vertical-align: middle; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--terra); cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(196,107,74,0.3); margin-top: -8px; }
+  input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--terra); cursor: pointer; border: 2px solid #fff; }
+  input[type="range"]::-webkit-slider-runnable-track { background: var(--blush); border-radius: 2px; height: 4px; }
+  input[type="range"]::-moz-range-track { background: var(--blush); border-radius: 2px; height: 4px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(10px);
+    background: var(--text-dark); color: #fff; padding: 10px 18px;
+    border-radius: 20px; font-size: 15px; opacity: 0;
+    transition: all 0.25s; pointer-events: none; z-index: 200; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── CYCLE RING ── */
+  .cycle-visual {
+    display: flex; justify-content: center; align-items: center;
+    padding: 10px 0 4px;
+  }
+  .phase-ring {
+    width: 130px; height: 130px; border-radius: 50%;
+    border: 2px solid var(--blush-mid);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 2px;
+    background: radial-gradient(circle at center, var(--blush) 0%, var(--cream) 70%);
+    position: relative;
+  }
+  .phase-ring-label { font-family: var(--font-serif); font-size: 15px; color: var(--terra-dark); font-style: italic; }
+  .phase-ring-day { font-size: 15px; color: var(--text-soft); }
+</style>
+</head>
+<body>
+<canvas id="star-canvas"></canvas>
+<div id="app">
+
+
+  <div class="screen active" id="screen-checkin">
+    <div class="page-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <svg width="28" height="28" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="4" y1="22" x2="26" y2="22" stroke="#C46B4A" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15" y1="22" x2="15" y2="4" stroke="#C46B4A" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M15 19 Q8 16 10 11 Q13 14 15 19z" fill="#C46B4A"/>
+          <path d="M15 14 Q22 11 20 6 Q17 9 15 14z" fill="#C46B4A"/>
+          <path d="M15 10 Q9 7 11 3 Q13 6 15 10z" fill="#C46B4A"/>
+        </svg>
+        <h1>Uplift</h1>
+      </div>
+      <p id="greeting-text" style="margin-top:4px;">How are you feeling today?</p>
+      <p id="log-count-text" style="margin-top:6px;font-size:15px;color:var(--terra);font-style:italic;"></p>
+      <div style="margin-top:10px;">
+        <label class="date-btn" id="date-btn-label">
+          <span id="date-btn-text">Today</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <input type="date" id="entry-date" onchange="updateDateBtn(this.value)">
+        </label>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div id="sync-banners-checkin" class="sync-banners-wrap"></div>
+
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+        <div class="cat-btn" id="cat-food" onclick="selectCategory('food')">
+          <div class="cat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>
+          </div>
+          <span class="cat-label">Food</span>
+        </div>
+        <div class="cat-btn" id="cat-sleep" onclick="selectCategory('sleep')">
+          <div class="cat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          </div>
+          <span class="cat-label">Sleep</span>
+        </div>
+        <div class="cat-btn" id="cat-period" onclick="selectCategory('period')">
+          <div class="cat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 5 10 5 15a7 7 0 0014 0C19 10 12 2 12 2z"/></svg>
+          </div>
+          <span class="cat-label">Period</span>
+        </div>
+        <div class="cat-btn" id="cat-exercise" onclick="selectCategory('exercise')">
+          <div class="cat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
+              <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+            </svg>
+          </div>
+          <span class="cat-label">Exercise</span>
+        </div>
+        <div class="cat-btn" id="cat-activity" onclick="selectCategory('activity')">
+          <div class="cat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <span class="cat-label">Feel</span>
+        </div>
+        <div class="cat-btn" id="cat-dailyactivity" onclick="selectCategory('dailyactivity')">
+          <div class="cat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <span class="cat-label">Activity</span>
+        </div>
+      </div>
+
+
+      <div id="panel-food" class="cat-panel" style="display:none;">
+        <div class="card">
+          <div class="card-label">How did you eat today?</div>
+          <div class="chip-wrap" id="food-chips">
+            <div class="chip food-chip" onclick="selectFood(this,'Nourishing')">Nourishing</div>
+            <div class="chip food-chip" onclick="selectFood(this,'Balanced')">Balanced</div>
+            <div class="chip food-chip" onclick="selectFood(this,'Comfort foods')">Comfort foods</div>
+            <div class="chip food-chip" onclick="selectFood(this,'Skipped meals')">Skipped meals</div>
+            <div class="chip food-chip" onclick="selectFood(this,'Irregular')">Irregular</div>
+          </div>
+        </div>
+        <button class="save-btn" onclick="saveEntry()">Save</button>
+
+        <div class="card" style="margin-top:4px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div class="card-label" style="margin-bottom:0;">Lose It</div>
+            <a href="loseit://" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--blush);border:0.5px solid var(--blush-mid);border-radius:var(--radius-xs);font-size:16px;font-weight:500;color:var(--terra-dark);text-decoration:none;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+              Open Lose It
+            </a>
+          </div>
+          <p style="font-size:15px;color:var(--text-soft);line-height:1.6;margin-bottom:14px;">Import your weekly Lose It report to sync calorie and nutrition data. You can select multiple files at once.</p>
+          <label style="display:flex;align-items:center;gap:10px;padding:11px 14px;border:0.5px dashed var(--blush-mid);border-radius:var(--radius-sm);cursor:pointer;background:var(--cream);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C46B4A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span style="font-size:15px;color:var(--terra);">Choose weekly report CSV(s)</span>
+            <input type="file" accept=".csv" multiple style="display:none" onchange="importLoseIt(this)">
+          </label>
+          <div id="loseit-status" style="font-size:16px;color:var(--text-soft);margin-top:10px;line-height:1.5;display:none;"></div>
+          <div style="margin-top:14px;border-top:0.5px solid var(--border);padding-top:14px;">
+            <p style="font-size:16px;font-weight:500;color:var(--text-mid);margin-bottom:8px;">How to export from Lose It</p>
+            <ol style="padding-left:16px;display:flex;flex-direction:column;gap:6px;">
+              <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Go to <span style="color:var(--terra);">loseit.com</span> and sign in</li>
+              <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Click <strong style="font-weight:500;color:var(--text-mid);">Insights</strong> at the top, then <strong style="font-weight:500;color:var(--text-mid);">Weekly Summary</strong> on the left</li>
+              <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Use the arrows to select your week, then click <strong style="font-weight:500;color:var(--text-mid);">Export</strong></li>
+              <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Repeat for each week you want to import — then upload them all at once here</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-sleep" class="cat-panel" style="display:none;">
+        <div class="card">
+          <div class="card-label">How did you sleep?</div>
+          <div class="chip-wrap" id="sleep-chips">
+            <div class="chip sleep-chip" onclick="selectSleep(this,'Great')">Great</div>
+            <div class="chip sleep-chip" onclick="selectSleep(this,'Good')">Good</div>
+            <div class="chip sleep-chip" onclick="selectSleep(this,'Restless')">Restless</div>
+            <div class="chip sleep-chip" onclick="selectSleep(this,'Poor')">Poor</div>
+            <div class="chip sleep-chip" onclick="selectSleep(this,'Very little')">Very little</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">Hours of sleep</div>
+          <div style="display:flex;align-items:center;gap:14px;padding:4px 0;">
+            <input type="range" min="2" max="12" step="0.5" value="7" id="sleep-hours-slider" oninput="document.getElementById('sleep-hours-val').textContent=this.value" style="flex:1;">
+            <span id="sleep-hours-val" style="font-family:var(--font-serif);font-size:22px;color:var(--terra);min-width:36px;text-align:right;">7</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">Anything else?</div>
+          <div class="chip-wrap" id="sleep-notes-chips">
+            <div class="chip sleep-note-chip" onclick="toggleSleepNote(this,'Vivid dreams')">Vivid dreams</div>
+            <div class="chip sleep-note-chip" onclick="toggleSleepNote(this,'Stress dreams')">Stress dreams</div>
+            <div class="chip sleep-note-chip" onclick="toggleSleepNote(this,'Nightmare')">Nightmare</div>
+            <div class="chip sleep-note-chip" onclick="toggleSleepNote(this,'Night sweats')">Night sweats</div>
+          </div>
+        </div>
+        <button class="save-btn" onclick="saveEntry()">Save</button>
+      </div>
+
+      <div id="panel-period" class="cat-panel" style="display:none;">
+        <div class="card">
+          <div class="card-label">Flow</div>
+          <div class="chip-wrap" id="flow-chips">
+            <div class="chip flow-chip" onclick="selectFlow(this,'Spotting')">Spotting</div>
+            <div class="chip flow-chip" onclick="selectFlow(this,'Light')">Light</div>
+            <div class="chip flow-chip" onclick="selectFlow(this,'Medium')">Medium</div>
+            <div class="chip flow-chip" onclick="selectFlow(this,'Heavy')">Heavy</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">Symptoms</div>
+          <div class="chip-wrap" id="symptom-chips">
+            <div class="chip" onclick="toggleChip(this,'Cramps')">Cramps</div>
+            <div class="chip" onclick="toggleChip(this,'Bloating')">Bloating</div>
+            <div class="chip" onclick="toggleChip(this,'Fatigue')">Fatigue</div>
+            <div class="chip" onclick="toggleChip(this,'Headache')">Headache</div>
+            <div class="chip" onclick="toggleChip(this,'Tender breasts')">Tender breasts</div>
+            <div class="chip" onclick="toggleChip(this,'Brain fog')">Brain fog</div>
+            <div class="chip" onclick="toggleChip(this,'Backache')">Backache</div>
+            <div class="chip" onclick="toggleChip(this,'Nausea')">Nausea</div>
+            <div class="chip" onclick="toggleChip(this,'Acne')">Acne</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">Discharge</div>
+          <div class="chip-wrap" id="discharge-chips">
+            <div class="chip discharge-chip" onclick="selectDischarge(this,'Dry')">Dry</div>
+            <div class="chip discharge-chip" onclick="selectDischarge(this,'Sticky')">Sticky</div>
+            <div class="chip discharge-chip" onclick="selectDischarge(this,'Creamy')">Creamy</div>
+            <div class="chip discharge-chip" onclick="selectDischarge(this,'Watery')">Watery</div>
+            <div class="chip discharge-chip" onclick="selectDischarge(this,'Egg white')">Egg white</div>
+          </div>
+        </div>
+        <button class="save-btn" onclick="saveEntry()">Save</button>
+      </div>
+
+      <div id="panel-exercise" class="cat-panel" style="display:none;">
+        <div class="card">
+          <div class="card-label">Did you exercise today?</div>
+          <div class="chip-wrap" id="exercise-chips">
+            <div class="chip ex-chip" onclick="selectExercise(this,'Walk')">Walk</div>
+            <div class="chip ex-chip" onclick="selectExercise(this,'Walked to work')">Walked to work</div>
+            <div class="chip ex-chip" onclick="selectExercise(this,'Walked home')">Walked home</div>
+            <div class="chip ex-chip" onclick="selectExercise(this,'Run')">Run</div>
+            <div class="chip ex-chip" onclick="selectExercise(this,'Strength')">Strength</div>
+            <div class="chip ex-chip" onclick="selectExercise(this,'Yoga')">Yoga</div>
+            <div class="chip ex-chip" onclick="selectExercise(this,'Swim')">Swim</div>
+            <div class="chip ex-chip" onclick="selectExercise(this,'Cycling')">Cycling</div>
+            <div class="chip ex-chip" onclick="selectExercise(this,'Other')">Other</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">How did it feel?</div>
+          <div class="energy-row">
+            <div class="energy-btn e-low" onclick="selectEnergy(this,'Low')">Easy</div>
+            <div class="energy-btn e-moderate" onclick="selectEnergy(this,'Moderate')">Moderate</div>
+            <div class="energy-btn e-high" onclick="selectEnergy(this,'High')">Hard</div>
+          </div>
+        </div>
+        <button class="save-btn" onclick="saveEntry()">Save</button>
+
+        <div class="card" id="garmin-card" style="margin-top:4px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="card-label" style="margin-bottom:0;">Garmin Connect</div>
+            <div id="garmin-badge" style="display:none;font-size:15px;font-weight:500;padding:3px 9px;border-radius:12px;background:var(--success-bg);color:#2D6B3E;"></div>
+          </div>
+          <div id="garmin-reminder" style="display:none;background:#FBF4E8;border:0.5px solid #D4A054;border-radius:var(--radius-xs);padding:10px 12px;margin-bottom:12px;font-size:15px;color:#8A5E1A;line-height:1.5;">
+            ⏰ Time for your weekly Garmin sync — it's been 7 days since your last sync.
+          </div>
+          <p style="font-size:15px;color:var(--text-soft);line-height:1.6;margin-bottom:14px;">Sync heart rate, stress, sleep, and steps directly — no file needed. Requires the sync server running on your PC.</p>
+          <button id="garmin-sync-btn" onclick="syncGarmin()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:var(--terra);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font-sans);font-size:16px;font-weight:500;cursor:pointer;margin-bottom:10px;transition:opacity 0.15s;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Sync Garmin now
+          </button>
+          <div id="garmin-sync-status" style="font-size:16px;line-height:1.5;margin-bottom:12px;display:none;"></div>
+          <div style="border-top:0.5px solid var(--border);padding-top:14px;margin-bottom:14px;">
+            <p style="font-size:16px;color:var(--text-hint);line-height:1.6;margin-bottom:8px;">The sync button works when <span style="font-family:var(--font-mono);font-size:15px;">uplift_garmin_sync.py</span> is running on your PC. Download it and follow the setup instructions inside.</p>
+            <a href="#" onclick="downloadSyncScript(event)" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:0.5px solid var(--border-mid);border-radius:var(--radius-xs);font-size:16px;color:var(--text-mid);text-decoration:none;background:var(--cream);">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Download sync server script
+            </a>
+          </div>
+          <div style="border-top:0.5px solid var(--border);padding-top:14px;">
+            <p style="font-size:16px;font-weight:500;color:var(--text-mid);margin-bottom:8px;">Or upload a UDSFile manually</p>
+            <label style="display:flex;align-items:center;gap:10px;padding:11px 14px;border:0.5px dashed var(--blush-mid);border-radius:var(--radius-sm);cursor:pointer;background:var(--cream);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C46B4A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              <span style="font-size:15px;color:var(--terra);">Choose UDSFile JSON</span>
+              <input type="file" accept=".json" style="display:none" onchange="importGarminUDS(this)">
+            </label>
+            <div id="garmin-status" style="font-size:16px;color:var(--text-soft);margin-top:10px;line-height:1.5;display:none;"></div>
+            <div style="margin-top:12px;">
+              <ol style="padding-left:16px;display:flex;flex-direction:column;gap:6px;">
+                <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Go to <span style="color:var(--terra);">connect.garmin.com</span> → profile icon → <strong style="font-weight:500;color:var(--text-mid);">Account Settings</strong></li>
+                <li style="font-size:16px;color:var(--text-soft);line-height:1.5;"><strong style="font-weight:500;color:var(--text-mid);">Data Management</strong> → <strong style="font-weight:500;color:var(--text-mid);">Export Your Data</strong> → request export</li>
+                <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Garmin emails you a zip — unzip and open <strong style="font-weight:500;color:var(--text-mid);">DI_CONNECT / DI-Connect-User</strong></li>
+                <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Upload the file starting with <strong style="font-weight:500;color:var(--text-mid);">UDSFile_</strong></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-activity" class="cat-panel" style="display:none;">
+        <div class="card">
+          <div class="card-label">Energy</div>
+          <div class="energy-row">
+            <div class="energy-btn e-low" onclick="selectEnergy(this,'Low')">Low</div>
+            <div class="energy-btn e-moderate" onclick="selectEnergy(this,'Moderate')">Moderate</div>
+            <div class="energy-btn e-high" onclick="selectEnergy(this,'High')">High</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">Mood</div>
+          <div class="chip-wrap" id="mood-chips">
+            <div class="chip mood-chip" onclick="selectMood(this,'Calm')">Calm</div>
+            <div class="chip mood-chip" onclick="selectMood(this,'Happy')">Happy</div>
+            <div class="chip mood-chip" onclick="selectMood(this,'Anxious')">Anxious</div>
+            <div class="chip mood-chip" onclick="selectMood(this,'Low')">Low</div>
+            <div class="chip mood-chip" onclick="selectMood(this,'Irritable')">Irritable</div>
+            <div class="chip mood-chip" onclick="selectMood(this,'Overwhelmed')">Overwhelmed</div>
+            <div class="chip mood-chip" onclick="selectMood(this,'Content')">Content</div>
+            <div class="chip mood-chip" onclick="selectMood(this,'Motivated')">Motivated</div>
+          </div>
+        </div>
+        <button class="save-btn" onclick="saveEntry()">Save</button>
+      </div>
+
+      <div id="panel-dailyactivity" class="cat-panel" style="display:none;">
+        <div class="card">
+          <div class="card-label">What did you get up to today?</div>
+          <div class="chip-wrap" id="dailyactivity-chips">
+            <div class="chip da-chip" onclick="toggleDailyActivity(this,'Shopping')">Shopping</div>
+            <div class="chip da-chip" onclick="toggleDailyActivity(this,'Therapy')">Therapy</div>
+            <div class="chip da-chip" onclick="toggleDailyActivity(this,'Social')">Social</div>
+            <div class="chip da-chip" onclick="toggleDailyActivity(this,'Chores')">Chores</div>
+            <div class="chip da-chip" onclick="toggleDailyActivity(this,'Arts and crafts')">Arts and crafts</div>
+            <div class="chip da-chip" onclick="toggleDailyActivity(this,'Reading')">Reading</div>
+            <div class="chip da-chip" onclick="toggleDailyActivity(this,'Cooking')">Cooking</div>
+          </div>
+        </div>
+        <button class="save-btn" onclick="saveEntry()">Save</button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <div class="screen" id="screen-trends">
+    <div class="page-header">
+      <h1>Trends</h1>
+      <p>Your patterns over time</p>
+    </div>
+    <div class="scroll-area">
+      <div id="sync-banners-trends" class="sync-banners-wrap"></div>
+      <div class="metric-row" id="metric-row"></div>
+      <div class="card">
+        <div class="card-label">Energy — last 7 days</div>
+        <div class="bar-chart" id="bar-chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Recent log</div>
+        <div id="log-list"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="screen" id="screen-insights">
+    <div class="page-header">
+      <h1>Insights</h1>
+      <p>Personalised to your cycle</p>
+    </div>
+    <div class="scroll-area">
+      <div id="sync-banners-insights" class="sync-banners-wrap"></div>
+      <div id="insights-content"></div>
+    </div>
+  </div>
+
+
+  <div class="screen" id="screen-foryou">
+    <div class="page-header">
+      <h1>For you</h1>
+      <p id="foryou-phase-label">Your daily recommendations</p>
+    </div>
+    <div class="scroll-area">
+      <div id="sync-banners-foryou" class="sync-banners-wrap"></div>
+      <div id="foryou-content"></div>
+    </div>
+  </div>
+
+
+  <div class="screen" id="screen-settings">
+    <div class="page-header">
+      <h1>Settings</h1>
+      <p>Personalise your Uplift</p>
+    </div>
+    <div class="scroll-area">
+      <div id="sync-banners-settings" class="sync-banners-wrap"></div>
+      <div class="settings-section">
+        <h2>AI Insights</h2>
+        <div class="settings-row">
+          <label for="api-key-input">Anthropic API key</label>
+          <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
+          <p class="api-hint">
+            Get your free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+            Your key is stored only on this device and never sent anywhere except Anthropic's API.
+          </p>
+        </div>
+        <button class="save-settings-btn" onclick="saveSettings()">Save settings</button>
+        <div class="saved-msg" id="saved-msg">Saved!</div>
+      </div>
+
+      <div class="settings-section">
+        <h2>Data</h2>
+        <div class="settings-row" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="exportData()">
+          <span style="font-size:16px;color:var(--text-mid);">Export my data (JSON)</span>
+          <span style="color:var(--terra);font-size:18px;">↓</span>
+        </div>
+        <div class="settings-row" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="clearData()">
+          <span style="font-size:16px;color:#C0392B;">Clear all data</span>
+          <span style="color:#C0392B;font-size:16px;">✕</span>
+        </div>
+      </div>
+
+      <div style="padding: 10px 0 20px;">
+        <p style="font-size:16px;color:var(--text-hint);line-height:1.6;text-align:center;">
+          Uplift stores all your data locally on this device.<br>
+          Nothing is shared with any server except AI insights<br>which go to Anthropic's API when you request them.
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-checkin" onclick="showScreen('checkin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <span>Log</span>
+    </button>
+    <button class="nav-btn" id="nav-trends" onclick="showScreen('trends')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Trends</span>
+    </button>
+    <button class="nav-btn" id="nav-foryou" onclick="showScreen('foryou')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span>For you</span>
+    </button>
+    <button class="nav-btn" id="nav-insights" onclick="showScreen('insights')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <span>Insights</span>
+    </button>
+    <button class="nav-btn" id="nav-settings" onclick="showScreen('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // ── STATE ──
+  let currentEntry = { phase: null, symptoms: [], food: null, energy: null };
+  let log = [];
+  let apiKey = '';
+
+  // ── INIT ──
+  function init() {
+    try { log = JSON.parse(localStorage.getItem('uplift_log') || '[]'); } catch(e) { log = []; }
+    apiKey = localStorage.getItem('uplift_apikey') || '';
+    if (apiKey) document.getElementById('api-key-input').value = apiKey;
+    setGreeting();
+    updateLogCount();
+    applyTheme();
+    const dateInput = document.getElementById('entry-date');
+    if (dateInput) { dateInput.value = new Date().toLocaleDateString('en-CA'); updateDateBtn(dateInput.value); }
+    checkGarminReminder();
+    updateGarminBadge();
+    renderSyncBanners();
+  }
+
+  function setGreeting() {
+    const h = new Date().getHours();
+    const morning = [
+      'Morning. The whole day is wide open.',
+      'You wake up and the world rearranges itself for you.',
+      'Fresh start, fresh energy. Let\'s go.',
+      'Everything you need, you already have.',
+      'The morning is yours and it feels good.',
+    ];
+    const afternoon = [
+      'In full flow. This is your time.',
+      'The afternoon hums and so do you.',
+      'Look at everything you\'re doing today.',
+      'Right in the middle of it all — and thriving.',
+      'The energy is good and so are you.',
+    ];
+    const evening = [
+      'Work is done. Time to nourish yourself.',
+      'Set it all down. This hour belongs to you.',
+      'The best kind of evening — one spent with yourself.',
+      'Soften now. You deserve a little tenderness.',
+      'Come back to yourself. You\'re worth taking care of.',
+    ];
+    const night = [
+      'Isn\'t the night time beautiful?',
+      'The night is so calm.',
+      'Still awake — the world is quiet now.',
+      'The stars are out.',
+      'Late night, just you and the quiet.',
+    ];
+    const pool = h >= 6 && h < 12 ? morning
+      : h >= 12 && h < 17 ? afternoon
+      : h >= 17 && h < 21 ? evening
+      : night;
+    document.getElementById('greeting-text').textContent = pool[h % pool.length];
+  }
+
+  // ── LOG COUNT ──
+  function updateDateBtn(val) {
+    const btn = document.getElementById('date-btn-text');
+    if (!btn) return;
+    const today = new Date().toLocaleDateString('en-CA');
+    if (!val || val === today) {
+      btn.textContent = 'Today';
+      return;
+    }
+    const d = new Date(val + 'T12:00:00');
+    const day = d.toLocaleDateString('en-GB', { weekday: 'short' });
+    const date = d.getDate();
+    const suffix = date === 1 || date === 21 || date === 31 ? 'st'
+      : date === 2 || date === 22 ? 'nd'
+      : date === 3 || date === 23 ? 'rd' : 'th';
+    const month = d.toLocaleDateString('en-GB', { month: 'long' });
+    btn.textContent = `${day}, ${date}${suffix} ${month}`;
+  }
+
+
+  function updateLogCount() {
+    const el = document.getElementById('log-count-text');
+    if (!el) return;
+    const today = new Date().toLocaleDateString('en-CA');
+    const todayEntry = log.find(e => e.date === today);
+    const firstMessages = [
+      "First check-in of the day — lovely to see you.",
+      "Welcome back. This moment is just for you.",
+      "Here you are. Let's take stock together.",
+      "A small act of care for yourself. That matters.",
+      "Ready when you are — no rush.",
+    ];
+    if (!todayEntry) {
+      const h = new Date().getHours();
+      el.textContent = firstMessages[h % firstMessages.length];
+    } else {
+      const fields = ['phase','food','sleep','exercise','mood','energy','flow'].filter(f => todayEntry[f]);
+      const symptoms = (todayEntry.symptoms || []).length;
+      const total = fields.length + (symptoms > 0 ? 1 : 0) + (todayEntry.garmin ? 1 : 0);
+      el.textContent = total === 1
+        ? "You've logged once today — keep going if you like."
+        : `You've logged ${total} things today.`;
+    }
+  }
+
+  // ── THEME ──
+  function applyTheme() {
+    const h = new Date().getHours();
+    const isNight = h >= 21 || h < 6;
+    document.body.classList.toggle('night-mode', isNight);
+    drawStars(isNight);
+  }
+
+  function drawStars(visible) {
+    const canvas = document.getElementById('star-canvas');
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    if (!visible) return;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Stepped gradient — distinct bands from dark to lighter
+    const steps = [
+      { stop: 0.00, color: 'rgba(4, 7, 20, 1)' },
+      { stop: 0.20, color: 'rgba(4, 7, 20, 1)' },
+      { stop: 0.20, color: 'rgba(7, 12, 32, 1)' },
+      { stop: 0.40, color: 'rgba(7, 12, 32, 1)' },
+      { stop: 0.40, color: 'rgba(10, 18, 44, 1)' },
+      { stop: 0.60, color: 'rgba(10, 18, 44, 1)' },
+      { stop: 0.60, color: 'rgba(14, 24, 56, 1)' },
+      { stop: 0.80, color: 'rgba(14, 24, 56, 1)' },
+      { stop: 0.80, color: 'rgba(18, 30, 68, 1)' },
+      { stop: 1.00, color: 'rgba(18, 30, 68, 1)' },
+    ];
+    const grad = ctx.createLinearGradient(0, 0, 0, window.innerHeight);
+    steps.forEach(s => grad.addColorStop(s.stop, s.color));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+    // Stars — varied sizes and opacities
+    const rng = (n) => Math.sin(n * 127.1 + 311.7) * 0.5 + 0.5;
+    for (let i = 0; i < 160; i++) {
+      const x = rng(i * 3.1) * window.innerWidth;
+      const y = rng(i * 7.3) * window.innerHeight;
+      const r = rng(i * 13.7) * 1.2 + 0.2;
+      const a = rng(i * 5.9) * 0.5 + 0.2;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200, 220, 255, ${a})`;
+      ctx.fill();
+    }
+    // A few slightly larger, warmer stars
+    for (let i = 0; i < 12; i++) {
+      const x = rng(i * 19.3 + 50) * window.innerWidth;
+      const y = rng(i * 11.7 + 80) * window.innerHeight;
+      const r = rng(i * 23.1) * 0.8 + 1.0;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(240, 230, 200, ${0.4 + rng(i * 7) * 0.3})`;
+      ctx.fill();
+    }
+  }
+
+  function renderSyncBanners() {
+    const screens = ['checkin', 'trends', 'insights', 'foryou', 'settings'];
+    const lastGarmin = localStorage.getItem('uplift_last_garmin_sync');
+    const lastLoseIt = localStorage.getItem('uplift_last_loseit_sync');
+    const lastBackup = localStorage.getItem('uplift_last_backup');
+    const garminDue = !lastGarmin || Math.floor((new Date() - new Date(lastGarmin + 'T12:00:00')) / 86400000) >= 7;
+    const loseItDue = !lastLoseIt || Math.floor((new Date() - new Date(lastLoseIt + 'T12:00:00')) / 86400000) >= 7;
+    const backupDue = !lastBackup || Math.floor((new Date() - new Date(lastBackup + 'T12:00:00')) / 86400000) >= 30;
+
+    const garminHTML = garminDue ? `<div class="sync-banner garmin" onclick="setTimeout(()=>selectCategory('exercise'),50)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A5E1A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div class="sync-banner-text"><strong>Your watch has things to say</strong><span>Give your Garmin data a little sync when you get a moment</span></div>
+      <div class="sync-banner-arrow">→</div>
+    </div>` : '';
+
+    const loseItHTML = loseItDue ? `<div class="sync-banner loseit" onclick="setTimeout(()=>selectCategory('food'),50)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#712B13" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
+      <div class="sync-banner-text"><strong>Hungry for food data</strong><span>Your weekly Lose It import is ready whenever you are</span></div>
+      <div class="sync-banner-arrow">→</div>
+    </div>` : '';
+
+    const backupHTML = backupDue && log.length > 0 ? `<div class="sync-banner" style="background:#F5E6DC;border:0.5px solid #C46B4A;color:#5C2210;cursor:pointer;" onclick="showScreen('settings')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C3D22" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      <div class="sync-banner-text"><strong>Time for your monthly backup</strong><span>Keep your data safe — takes two seconds</span></div>
+      <div class="sync-banner-arrow">→</div>
+    </div>` : '';
+
+    screens.forEach(id => {
+      const wrap = document.getElementById('sync-banners-' + id);
+      if (!wrap) return;
+      if (id === 'checkin') wrap.innerHTML = garminHTML + loseItHTML + backupHTML;
+      else wrap.innerHTML = backupHTML;
+    });
+  }
+
+  // ── NAVIGATION ──
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    const scrollArea = document.querySelector('#screen-' + name + ' .scroll-area');
+    if (scrollArea) scrollArea.scrollTop = 0;
+    renderSyncBanners();
+    if (name === 'trends') renderTrends();
+    if (name === 'insights') renderInsights();
+    if (name === 'foryou') renderForYou();
+  }
+
+  // ── CATEGORY SELECTION ──
+  let activeCategory = null;
+  function selectCategory(name) {
+    document.querySelectorAll('.cat-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    if (activeCategory === name) { activeCategory = null; return; }
+    activeCategory = name;
+    document.getElementById('cat-' + name).classList.add('active');
+    document.getElementById('panel-' + name).style.display = 'block';
+  }
+
+  function markCategoryDone(name) {
+    const btn = document.getElementById('cat-' + name);
+    if (btn) { btn.classList.remove('active'); btn.classList.add('done'); }
+  }
+
+  function selectFlow(el, val) {
+    currentEntry.flow = val;
+    document.querySelectorAll('.flow-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    markCategoryDone('period');
+    inferCyclePhase();
+  }
+
+  function selectDischarge(el, val) {
+    currentEntry.discharge = val;
+    document.querySelectorAll('.discharge-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    inferCyclePhase();
+  }
+
+  function inferCyclePhase() {
+    const flow = currentEntry.flow;
+    const discharge = currentEntry.discharge;
+    const symptoms = currentEntry.symptoms || [];
+
+    const pmsSymptoms = ['Cramps', 'Bloating', 'Tender breasts', 'Backache', 'Nausea', 'Acne'];
+    const physicalPMSCount = symptoms.filter(s => pmsSymptoms.includes(s)).length;
+
+    const recentLog = log.slice(0, 35);
+    const daysSinceOvulation = recentLog.findIndex(e =>
+      e.phase === 'ovulation' || e.discharge === 'Egg white' || e.discharge === 'Watery'
+    );
+    const daysSinceMenstrual = recentLog.findIndex(e =>
+      e.phase === 'menstrual' || ['Heavy','Medium','Light','Spotting'].includes(e.flow)
+    );
+
+    let phase = null;
+
+    if (['Heavy','Medium','Light','Spotting'].includes(flow)) {
+      phase = 'menstrual';
+      currentEntry.pms = false;
+    } else if ((discharge === 'Egg white' || discharge === 'Watery') && physicalPMSCount === 0) {
+      phase = 'ovulation';
+      currentEntry.pms = false;
+    } else if (physicalPMSCount >= 2) {
+      phase = 'luteal';
+      currentEntry.pms = true;
+    } else if (discharge === 'Creamy' || discharge === 'Sticky') {
+      phase = (daysSinceMenstrual >= 0 && daysSinceMenstrual <= 10) ? 'follicular' : 'luteal';
+    } else if (discharge === 'Dry' || discharge === 'None') {
+      phase = daysSinceOvulation >= 0 ? 'luteal' : 'follicular';
+    }
+
+    if (phase) currentEntry.phase = phase;
+  }
+
+  function toggleChip(el, val) {
+    if (currentEntry.symptoms.includes(val)) {
+      currentEntry.symptoms = currentEntry.symptoms.filter(s => s !== val);
+      el.classList.remove('selected');
+    } else {
+      currentEntry.symptoms.push(val);
+      el.classList.add('selected');
+    }
+    inferCyclePhase();
+  }
+
+  function toggleSleepNote(el, val) {
+    if (!currentEntry.sleepNotes) currentEntry.sleepNotes = [];
+    if (currentEntry.sleepNotes.includes(val)) {
+      currentEntry.sleepNotes = currentEntry.sleepNotes.filter(s => s !== val);
+      el.classList.remove('selected');
+    } else {
+      currentEntry.sleepNotes.push(val);
+      el.classList.add('selected');
+    }
+  }
+
+  function selectFood(el, val) {
+    currentEntry.food = val;
+    document.querySelectorAll('.food-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    markCategoryDone('food');
+  }
+
+  function selectEnergy(el, val) {
+    currentEntry.energy = val;
+    el.closest('.cat-panel, .card').querySelectorAll('.energy-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function toggleDailyActivity(el, val) {
+    if (!currentEntry.dailyActivities) currentEntry.dailyActivities = [];
+    if (currentEntry.dailyActivities.includes(val)) {
+      currentEntry.dailyActivities = currentEntry.dailyActivities.filter(a => a !== val);
+      el.classList.remove('selected');
+    } else {
+      currentEntry.dailyActivities.push(val);
+      el.classList.add('selected');
+      markCategoryDone('dailyactivity');
+    }
+  }
+
+  function selectSleep(el, val) {
+    currentEntry.sleep = val;
+    document.querySelectorAll('.sleep-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    markCategoryDone('sleep');
+  }
+
+  function selectExercise(el, val) {
+    currentEntry.exercise = val;
+    document.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    markCategoryDone('exercise');
+  }
+
+  function selectMood(el, val) {
+    currentEntry.mood = val;
+    document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    markCategoryDone('activity');
+    inferCyclePhase();
+  }
+
+  // ── ENTRY MERGING ──
+  // All writes to the log go through this function so same-day data is always
+  // combined rather than overwritten. Arrays are unioned, scalars only update
+  // when the incoming value is non-null/non-empty.
+  function mergeEntries(existing, incoming) {
+    const merged = { ...existing };
+    const arrayFields = ['symptoms', 'sleepNotes', 'dailyActivities'];
+    const scalarFields = ['phase', 'food', 'energy', 'sleep', 'sleepHours', 'exercise', 'mood', 'flow', 'discharge', 'pms'];
+    arrayFields.forEach(field => {
+      const a = existing[field] || [];
+      const b = incoming[field] || [];
+      merged[field] = [...new Set([...a, ...b])];
+    });
+    scalarFields.forEach(field => {
+      if (incoming[field] !== null && incoming[field] !== undefined) {
+        merged[field] = incoming[field];
+      }
+    });
+    if (incoming.garmin) merged.garmin = Object.assign(existing.garmin || {}, incoming.garmin);
+    if (incoming.loseIt) merged.loseIt = incoming.loseIt;
+    return merged;
+  }
+
+  function upsertLogEntry(ds, incoming) {
+    const idx = log.findIndex(e => e.date === ds);
+    if (idx >= 0) {
+      log[idx] = mergeEntries(log[idx], incoming);
+    } else {
+      log.unshift({ date: ds, phase: null, symptoms: [], food: null, energy: null,
+        sleep: null, exercise: null, mood: null, flow: null, discharge: null,
+        sleepNotes: [], dailyActivities: [], ...incoming });
+    }
+    log.sort((a, b) => b.date.localeCompare(a.date));
+    localStorage.setItem('uplift_log', JSON.stringify(log));
+  }
+
+  function saveEntry() {
+    if (!currentEntry.phase && !currentEntry.food && !currentEntry.energy && !currentEntry.sleep && !currentEntry.exercise && !currentEntry.mood && currentEntry.symptoms.length === 0 && (!currentEntry.dailyActivities || currentEntry.dailyActivities.length === 0)) {
+      showToast('Please fill in at least one field.');
+      return;
+    }
+    const sleepHours = document.getElementById('sleep-hours-slider');
+    if (currentEntry.sleep && sleepHours) currentEntry.sleepHours = parseFloat(sleepHours.value);
+    const dateInput = document.getElementById('entry-date');
+    const ds = dateInput && dateInput.value ? dateInput.value : new Date().toLocaleDateString('en-CA');
+    upsertLogEntry(ds, JSON.parse(JSON.stringify(currentEntry)));
+    resetForm();
+    updateLogCount();
+    showToast('Check-in saved for ' + formatDate(ds));
+    showScreen('trends');
+  }
+
+  function resetForm() {
+    currentEntry = { phase: null, symptoms: [], food: null, energy: null, sleep: null, exercise: null, mood: null, flow: null, discharge: null, sleepNotes: [], dailyActivities: [] };
+    activeCategory = null;
+    document.querySelectorAll('.cat-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.cat-btn').forEach(b => { b.classList.remove('active'); b.classList.remove('done'); });
+    const dateInput = document.getElementById('entry-date');
+    if (dateInput) { dateInput.value = new Date().toLocaleDateString('en-CA'); updateDateBtn(dateInput.value); }
+    document.querySelectorAll('.phase-btn').forEach(b => b.className = 'phase-btn');
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.energy-btn').forEach(b => b.classList.remove('selected'));
+    const sleepHours = document.getElementById('sleep-hours-slider');
+    if (sleepHours) { sleepHours.value = 7; document.getElementById('sleep-hours-val').textContent = '7'; }
+  }
+
+  // ── FOR YOU ──
+  function renderForYou() {
+    const area = document.getElementById('foryou-content');
+    const recent = log.slice(0, 14);
+
+    // Determine current phase
+    const phaseEntry = recent.find(e => e.phase);
+    const phase = phaseEntry ? phaseEntry.phase : 'unknown';
+    const pmsActive = recent.slice(0, 3).some(e => e.pms);
+
+    // Exercise context
+    const recentExercise = recent.filter(e => e.exercise && e.exercise !== 'Rest day');
+    const daysSinceExercise = recent.findIndex(e => e.exercise && e.exercise !== 'Rest day');
+    const recentHardWorkouts = recent.slice(0, 7).filter(e => e.energy === 'High' && e.exercise).length;
+    const exerciseInactive = daysSinceExercise > 5 || (recentExercise.length === 0);
+    const daysSinceExerciseNum = daysSinceExercise === -1 ? 99 : daysSinceExercise;
+    const garminStress = recent.slice(0, 3).map(e => e.garmin?.avgStress).filter(Boolean);
+    const avgStress = garminStress.length ? Math.round(garminStress.reduce((a,b)=>a+b,0)/garminStress.length) : null;
+    const lowIron = phase === 'menstrual' || (recent.slice(0,3).some(e => ['Heavy','Medium'].includes(e.flow)));
+
+    // Food gap context
+    const recentFoods = recent.slice(0, 7).map(e => e.food).filter(Boolean);
+    const skippedMealsRecently = recentFoods.filter(f => f === 'Skipped meals' || f === 'Irregular').length;
+    const comfortFoodsOnly = recentFoods.length >= 3 && recentFoods.every(f => f === 'Comfort foods');
+    const nourishingRecently = recentFoods.some(f => f === 'Nourishing' || f === 'Balanced');
+    const noFoodLogged = recentFoods.length === 0;
+
+    const phaseLabels = {
+      menstrual: 'Menstrual phase', follicular: 'Follicular',
+      ovulation: 'Ovulation', luteal: 'Luteal', unknown: 'Your recommendations'
+    };
+    const phaseDescs = {
+      menstrual: 'Rest, replenish, and be gentle with yourself.',
+      follicular: 'Energy is rising — a good time to try new things.',
+      ovulation: 'Peak energy and sociability — make the most of it.',
+      luteal: pmsActive ? 'Your body may need extra care right now.' : 'Wind down gradually and support your body.',
+      unknown: 'Log some check-ins to get phase-specific recommendations.'
+    };
+    const phaseEmojis = { menstrual:'🌑', follicular:'🌓', ovulation:'🌕', luteal:'🌘', unknown:'✦' };
+
+    // ── BUILD RECS ──
+    const nutrition = [];
+    const movement = [];
+    const selfcare = [];
+
+    // NUTRITION — food gap based
+    if (skippedMealsRecently >= 2) {
+      nutrition.push({ icon:'🍽', iconClass:'orange', title:'You\'ve been skipping meals', desc:'Irregular eating can affect energy, mood, and hormone balance throughout your cycle. Even something small and easy — fruit, toast, yoghurt — helps keep blood sugar steady.', tag:'energy' });
+    }
+    if (comfortFoodsOnly) {
+      nutrition.push({ icon:'🥦', iconClass:'green', title:'Time to sneak in some nourishment', desc:'Comfort foods are completely valid, especially during harder phases. Adding one nourishing element — a handful of spinach, some protein, a piece of fruit — alongside them makes a real difference.', tag:'energy' });
+    }
+    if (nourishingRecently) {
+      nutrition.push({ icon:'✨', iconClass:'amber', title:'You\'ve been eating well', desc:'Consistent nourishing eating supports your cycle, mood, and energy. Keep it up — your body notices.', tag:'energy' });
+    }
+
+    // NUTRITION — phase based
+    if (lowIron) {
+      nutrition.push({ icon:'🫀', iconClass:'pink', title:'Prioritise iron-rich foods', desc:'Your body loses iron during your period. Focus on red meat, lentils, spinach, tofu, and fortified cereals. Pair with vitamin C (citrus, peppers) to boost absorption.', tag:'iron' });
+      nutrition.push({ icon:'🥬', iconClass:'green', title:'Avoid iron blockers at meals', desc:'Coffee, tea, and calcium-rich foods can reduce iron absorption by up to 50%. Try to space these at least an hour away from iron-rich meals.', tag:'iron' });
+    }
+    if (phase === 'menstrual') {
+      nutrition.push({ icon:'🍫', iconClass:'amber', title:'Magnesium for cramps', desc:'Dark chocolate, pumpkin seeds, almonds, and bananas are high in magnesium, which can help ease cramping and low mood during your period.', tag:'energy' });
+      nutrition.push({ icon:'🐟', iconClass:'orange', title:'Omega-3s to reduce inflammation', desc:'Salmon, sardines, flaxseed, and walnuts have anti-inflammatory effects that may reduce period pain and bloating.', tag:'iron' });
+    }
+    if (phase === 'follicular') {
+      nutrition.push({ icon:'🥚', iconClass:'amber', title:'Protein for the follicular rise', desc:'As oestrogen rises, your metabolism is more efficient. Lean proteins like eggs, chicken, legumes, and Greek yoghurt support energy and muscle repair.', tag:'energy' });
+      nutrition.push({ icon:'🫐', iconClass:'purple', title:'Fermented foods for gut health', desc:'The follicular phase is a great time to support your microbiome with kefir, kimchi, yoghurt, or sauerkraut. Gut health influences mood and hormone balance.', tag:'energy' });
+    }
+    if (phase === 'ovulation') {
+      nutrition.push({ icon:'🥗', iconClass:'green', title:'Light, fibre-rich meals', desc:'Oestrogen peaks at ovulation. Support your liver\'s hormone processing with cruciferous vegetables like broccoli, cauliflower, and Brussels sprouts.', tag:'energy' });
+    }
+    if (phase === 'luteal' || pmsActive) {
+      nutrition.push({ icon:'🍠', iconClass:'amber', title:'Complex carbs over simple sugars', desc:'Cravings are common in the luteal phase. Sweet potatoes, oats, and brown rice stabilise blood sugar better than processed foods and support serotonin production.', tag:'energy' });
+      nutrition.push({ icon:'🧂', iconClass:'orange', title:'Watch sodium for bloating', desc:'Excess salt worsens luteal bloating. Stick to whole foods where possible and season with herbs instead — your body will thank you.', tag:'selfcare' });
+      if (pmsActive) nutrition.push({ icon:'🫖', iconClass:'purple', title:'Chamomile or ginger tea', desc:'Both have mild anti-inflammatory and calming properties. Chamomile in particular has been shown to reduce anxiety and improve sleep quality during PMS.', tag:'selfcare' });
+    }
+
+    // MOVEMENT — exercise gap based (cross-phase)
+    if (daysSinceExerciseNum >= 7 && !pmsActive) {
+      movement.push({ icon:'🌿', iconClass:'green', title:`It's been ${daysSinceExerciseNum === 99 ? 'a while' : daysSinceExerciseNum + ' days'} since you moved`, desc:'No pressure — but even a 10-minute walk can reset your energy and mood. You don\'t have to earn it or make it count. Just move a little.', tag:'movement' });
+    }
+    if (daysSinceExerciseNum >= 14) {
+      movement.push({ icon:'🎯', iconClass:'amber', title:'Try a snackxercise to restart', desc:'When getting back to movement feels hard, shrink it down. A 5-minute stretch, a walk to the end of the street, dancing to one song. Small restarts are still restarts.', tag:'movement' });
+    }
+
+    // MOVEMENT — phase based
+    if (phase === 'menstrual') {
+      if (exerciseInactive) {
+        movement.push({ icon:'🧘', iconClass:'purple', title:'Gentle yoga or stretching', desc:'Even 10 minutes of restorative yoga can ease cramping and improve mood. Try child\'s pose, supine twists, and legs-up-the-wall.', tag:'movement' });
+        movement.push({ icon:'🚶', iconClass:'green', title:'A slow walk counts', desc:'A 15-minute gentle walk is enough to release endorphins without taxing your body. You don\'t have to push through — movement that feels good is the right movement.', tag:'movement' });
+      } else {
+        movement.push({ icon:'💤', iconClass:'purple', title:'Rest is productive', desc:'Your body is doing a lot right now. Swapping intense sessions for rest or gentle movement during your period isn\'t giving up — it\'s smart recovery.', tag:'rest' });
+      }
+    } else if (phase === 'follicular') {
+      if (exerciseInactive) {
+        movement.push({ icon:'🏃', iconClass:'green', title:'Good time to get back to it', desc:'Rising oestrogen means your energy and strength are improving. A short run, swim, or strength session will likely feel easier than it did last week.', tag:'movement' });
+        movement.push({ icon:'🎯', iconClass:'amber', title:'Try a snackxercise', desc:'Can\'t face a full workout? Break it into 10-minute bursts — a brisk walk, a set of squats, or a short YouTube workout. These "snackxercises" add up and build momentum.', tag:'movement' });
+      } else {
+        movement.push({ icon:'💪', iconClass:'green', title:'Build intensity gradually', desc:'The follicular phase is ideal for progressive overload. If you\'ve been doing moderate workouts, try adding a little more resistance or time this week.', tag:'movement' });
+      }
+    } else if (phase === 'ovulation') {
+      movement.push({ icon:'⚡', iconClass:'amber', title:'Peak performance window', desc:'Oestrogen and testosterone are both elevated — your strength, coordination, and endurance are at their monthly high. Great time for HIIT, heavy lifts, or a challenging run.', tag:'movement' });
+      if (recentHardWorkouts < 2) {
+        movement.push({ icon:'🏊', iconClass:'green', title:'Push a little harder this week', desc:'Your body is primed for intensity right now. Even if you\'ve been taking it easy, a more energetic session this week can feel surprisingly good.', tag:'movement' });
+      }
+    } else if (phase === 'luteal') {
+      if (exerciseInactive && !pmsActive) {
+        movement.push({ icon:'🚴', iconClass:'amber', title:'Snackxercise to maintain momentum', desc:'A 10-minute cycling session, a walk after dinner, or a gentle YouTube yoga flow counts. The goal isn\'t intensity right now — it\'s maintaining the habit.', tag:'movement' });
+      } else if (pmsActive) {
+        movement.push({ icon:'🧘', iconClass:'purple', title:'Slow flow yoga for PMS', desc:'Yin yoga, slow vinyasa, or a gentle stretch routine can reduce cramping, ease anxiety, and improve sleep without adding physical stress.', tag:'movement' });
+        movement.push({ icon:'🌿', iconClass:'green', title:'Walking outside if possible', desc:'Natural light and gentle movement both regulate cortisol, which tends to rise in late luteal. Even 10 minutes outside makes a difference.', tag:'movement' });
+      } else {
+        movement.push({ icon:'🏋️', iconClass:'green', title:'Moderate, not maximal', desc:'The luteal phase suits moderate-intensity movement — a steady jog, pilates, or a lighter weights session. Save peak efforts for your follicular and ovulation phases.', tag:'movement' });
+      }
+      if (avgStress !== null && avgStress > 50) {
+        movement.push({ icon:'🌬️', iconClass:'purple', title:'Movement for stress, not fitness', desc:'Your Garmin stress data has been elevated. Try choosing movement you find enjoyable rather than challenging — this lowers cortisol rather than spiking it.', tag:'rest' });
+      }
+    } else {
+      if (exerciseInactive) {
+        movement.push({ icon:'🎯', iconClass:'amber', title:'Start with a snackxercise', desc:'Haven\'t moved in a few days? A 10-minute walk, a short stretch, or even dancing in your kitchen is a completely valid starting point. No pressure to do more.', tag:'movement' });
+      }
+    }
+
+    // SELF CARE
+    if (phase === 'menstrual') {
+      selfcare.push({ icon:'🛁', iconClass:'pink', title:'Heat therapy for cramps', desc:'A hot water bottle or heat patch on your lower abdomen or back can be as effective as ibuprofen for mild-to-moderate cramps. Use for 20 minutes at a time.', tag:'selfcare' });
+      selfcare.push({ icon:'😴', iconClass:'purple', title:'Protect your sleep', desc:'Progesterone drops sharply at menstruation, which can disrupt sleep. Keep a consistent bedtime, reduce screen light in the evening, and consider a magnesium supplement before bed.', tag:'rest' });
+    }
+    if (phase === 'luteal' || pmsActive) {
+      selfcare.push({ icon:'📵', iconClass:'purple', title:'Reduce decision fatigue', desc:'The luteal brain tends toward overwhelm. Try batching decisions earlier in the day, simplifying your to-do list, and saying no to optional commitments without guilt.', tag:'selfcare' });
+    }
+    if (avgStress !== null && avgStress > 60) {
+      selfcare.push({ icon:'🫧', iconClass:'pink', title:'Your stress has been high', desc:'Your Garmin readings show elevated stress recently. Even 5 minutes of slow breathing (4 counts in, 6 counts out) measurably reduces cortisol. Try it before bed tonight.', tag:'selfcare' });
+    }
+    if (phase === 'follicular' || phase === 'ovulation') {
+      selfcare.push({ icon:'🌤️', iconClass:'amber', title:'Use your high-energy window', desc:'This phase tends to bring clearer thinking and more social energy. It\'s a good time to schedule things that need your full attention or that you\'ve been putting off.', tag:'selfcare' });
+    }
+
+    // ── RENDER ──
+    let html = `<div class="phase-banner ${phase}">
+      <div style="font-size:24px;">${phaseEmojis[phase]}</div>
+      <div class="phase-banner-text">
+        <h3>${phaseLabels[phase]}</h3>
+        <p>${phaseDescs[phase]}</p>
+      </div>
+    </div>`;
+
+    const tagIcons = {
+      iron:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+      energy:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>`,
+      movement: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3" r="1.5"/><line x1="12" y1="4.5" x2="12" y2="13"/><line x1="12" y1="7" x2="5" y2="4"/><line x1="12" y1="7" x2="19" y2="4"/><line x1="12" y1="13" x2="5" y2="20"/><line x1="12" y1="13" x2="19" y2="20"/></svg>`,
+      rest:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`,
+      selfcare: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+    };
+    const tagLabels = {
+      iron:     'Supports iron levels',
+      energy:   'Supports energy',
+      movement: 'Supports movement',
+      rest:     'Supports rest',
+      selfcare: 'Supports self care',
+    };
+
+    function renderSection(title, recs) {
+      if (!recs.length) return '';
+      return `<div class="rec-section">
+        <div class="rec-section-title">${title}</div>
+        ${recs.map(r => `<div class="rec-card">
+          <div class="rec-icon ${r.iconClass}">${r.icon}</div>
+          <div class="rec-body">
+            <div class="rec-title">${r.title}</div>
+            <div class="rec-desc">${r.desc}</div>
+            <span class="rec-tag ${r.tag}">${tagIcons[r.tag] || ''}${tagLabels[r.tag] || r.tag}</span>
+          </div>
+        </div>`).join('')}
+      </div>`;
+    }
+
+    html += renderSection('Nutrition', nutrition);
+    html += renderSection('Movement', movement);
+    html += renderSection('Self care', selfcare);
+
+    if (!nutrition.length && !movement.length && !selfcare.length) {
+      html += '<div class="empty"><div class="empty-icon">🌱</div>Log a few check-ins and your recommendations will appear here.</div>';
+    }
+
+    area.innerHTML = html;
+    const phaseLabel = document.getElementById('foryou-phase-label');
+    if (phaseLabel) phaseLabel.textContent = 'Your daily recommendations';
+  }
+
+  function renderTrends() {
+    renderMetrics();
+    renderBarChart();
+    renderLogList();
+  }
+
+  function renderMetrics() {
+    const row = document.getElementById('metric-row');
+    const total = log.length;
+    const highEnergy = log.filter(e => e.energy === 'High').length;
+    row.innerHTML = `
+      <div class="metric-card">
+        <div class="metric-num">${total}</div>
+        <div class="metric-label">Total check-ins</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num">${total ? Math.round(highEnergy / total * 100) : 0}%</div>
+        <div class="metric-label">High energy days</div>
+      </div>`;
+  }
+
+  function renderBarChart() {
+    const chart = document.getElementById('bar-chart');
+    const eMap = { Low: 1, Moderate: 2, High: 3 };
+    const colors = { Low: '#C39BD3', Moderate: '#D4A054', High: '#6B9E7A' };
+    const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    const today = new Date();
+    chart.innerHTML = '';
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const ds = d.toLocaleDateString('en-CA');
+      const entry = log.find(e => e.date === ds);
+      const val = entry ? (eMap[entry.energy] || 0) : 0;
+      const col = document.createElement('div');
+      col.className = 'bar-col';
+      const bar = document.createElement('div');
+      bar.className = 'bar-fill';
+      bar.style.height = val ? (val * 30) + 'px' : '3px';
+      bar.style.background = val ? colors[entry.energy] : 'var(--border)';
+      const lbl = document.createElement('div');
+      lbl.className = 'bar-day'; lbl.textContent = days[d.getDay()];
+      col.appendChild(bar); col.appendChild(lbl);
+      chart.appendChild(col);
+    }
+  }
+
+  function renderLogList() {
+    const list = document.getElementById('log-list');
+    if (!log.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">🌱</div>No entries yet — do your first check-in!</div>'; return; }
+    list.innerHTML = log.slice(0, 7).map(e => {
+      const g = e.garmin || {};
+      const t = (text, cls) => `<span class="tag ${cls}">${text}</span>`;
+      const tags = [
+        // Period
+        e.flow && e.flow !== 'None'  ? t(e.flow + ' flow', 'tag-flow') : '',
+        e.phase                       ? t(e.phase, 'tag-phase') : '',
+        // Symptoms
+        ...(e.symptoms || []).map(s => t(s, 'tag-sym')),
+        // Food
+        e.food                        ? t(e.food, 'tag-food') : '',
+        // Sleep
+        e.sleep                       ? t(e.sleep + ' sleep' + (e.sleepHours ? ' · ' + e.sleepHours + 'h' : ''), 'tag-sleep') : '',
+        ...(e.sleepNotes || []).map(n => t(n, 'tag-dream')),
+        // Exercise
+        e.exercise                    ? t(e.exercise, 'tag-exercise') : '',
+        // Feel
+        e.energy                      ? t(e.energy + ' energy', 'tag-energy') : '',
+        e.mood                        ? t(e.mood, 'tag-mood') : '',
+        // Daily activities
+        ...(e.dailyActivities || []).map(a => t(a, 'tag-dailyactivity')),
+        // Garmin
+        g.restingHR                   ? t('♥ ' + g.restingHR + ' bpm', 'tag-hr') : '',
+        g.avgStress != null           ? t('stress ' + g.avgStress, 'tag-stress') : '',
+        g.actType                     ? t('⌚ ' + g.actType + (g.duration ? ' · ' + g.duration : ''), 'tag-garmin') : '',
+        // Lose It
+        e.loseIt                      ? t(e.loseIt.calories + ' kcal · ' + e.loseIt.protein + 'g protein', 'tag-nutrition') : '',
+      ].filter(Boolean).join('');
+      return `<div class="log-item"><div class="log-date">${formatDate(e.date)}</div><div class="log-tags">${tags || '<span style="font-size:16px;color:var(--text-hint)">Data imported</span>'}</div></div>`;
+    }).join('');
+  }
+
+  function formatDate(ds) {
+    const d = new Date(ds + 'T12:00:00');
+    return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  // ── INSIGHTS ──
+  function renderInsights(forceRefresh) {
+    const area = document.getElementById('insights-content');
+    if (log.length < 1) {
+      area.innerHTML = '<div class="empty"><div class="empty-icon">✦</div>Log a few check-ins and your personalised insights will appear here.</div>';
+      return;
+    }
+    if (!apiKey) {
+      area.innerHTML = `<div class="insight-box">
+        <div class="insight-eyebrow">Setup needed</div>
+        <p>Add your Anthropic API key in Settings to unlock personalised AI insights.</p>
+      </div>`;
+      return;
+    }
+    area.innerHTML = `<div class="insight-box"><div class="insight-eyebrow">Personalised insight</div><p class="insight-loading">Thinking about your patterns…</p></div>`;
+    fetchInsight();
+  }
+
+  async function fetchInsight() {
+    const area = document.getElementById('insights-content');
+    const summary = log.slice(0, 10).map(e => {
+      const g = e.garmin || {};
+      const garminStr = Object.keys(g).length ? `, garmin=[${[
+        g.actType ? 'activity:' + g.actType + (g.duration ? '(' + g.duration + ')' : '') : '',
+        g.restingHR ? 'resting_hr:' + g.restingHR : '',
+        g.avgHR ? 'avg_hr:' + g.avgHR : '',
+        g.avgStress != null ? 'stress:' + g.avgStress : '',
+        g.stressQualifier ? 'stress_qual:' + g.stressQualifier : '',
+        g.steps ? 'steps:' + g.steps : ''
+      ].filter(Boolean).join(',')}]` : '';
+      const periodStr = [
+        e.flow ? 'flow:' + e.flow : '',
+        e.discharge ? 'discharge:' + e.discharge : '',
+        e.phase ? 'inferred_phase:' + e.phase : '',
+        e.pms ? 'pms:true' : ''
+      ].filter(Boolean).join(',');
+      const loseItStr = e.loseIt ? `, nutrition=[calories:${e.loseIt.calories},protein:${e.loseIt.protein}g,carbs:${e.loseIt.carbs}g,fat:${e.loseIt.fat}g]` : '';
+      return `${e.date}: ${periodStr ? periodStr + ', ' : ''}symptoms=${(e.symptoms||[]).join(',')||'none'}, food=${e.food||'unknown'}, sleep=${e.sleep||'unknown'}${e.sleepHours ? '(' + e.sleepHours + 'hrs)' : ''}${(e.sleepNotes||[]).length ? ' notes:' + e.sleepNotes.join(',') : ''}, energy=${e.energy||'unknown'}, mood=${e.mood||'unknown'}, exercise=${e.exercise||'unknown'}${garminStr}${loseItStr}`;
+    }).join('\n');
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 600,
+          system: `You are the wellness intelligence inside Uplift, a personal health tracking app. You are warm, honest, and knowledgeable — like a caring friend who also happens to understand female health and nutrition deeply. Important context: the user lives with anxiety and depression throughout their cycle — these are part of their baseline, not cycle anomalies, and you should never imply otherwise. Cycle phases are inferred purely from physical signals (flow, discharge, physical symptoms). Emotional data is logged separately as a distinct layer. Your job is to look for patterns between emotional states and cycle phases over time — for example, noticing whether certain moods tend to cluster around particular phases across multiple cycles — and reflect those patterns back gently and without assumption. Never draw conclusions from a single emotional data point. A 'pms:true' flag means two or more physical PMS symptoms were logged during the luteal phase. Give 2–3 short paragraphs: first notice a real pattern in the data, then give a concrete cycle-aware recommendation (food, movement, or rest), then close with something encouraging but not saccharine. Write in flowing prose, not bullet points.`,
+          messages: [{ role: 'user', content: `Here is my recent wellness log:\n${summary}\n\nPlease give me a personalised insight.` }]
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      const text = data.content?.map(b => b.text||'').join('') || '';
+      const paras = text.split('\n\n').filter(Boolean).map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+      area.innerHTML = `<div class="insight-box">
+        <div class="insight-eyebrow">Personalised insight</div>
+        ${paras}
+        <button class="refresh-btn" onclick="fetchInsight()">↺ Refresh insight</button>
+      </div>`;
+    } catch(err) {
+      area.innerHTML = `<div class="insight-box">
+        <div class="insight-eyebrow">Could not load insight</div>
+        <p>Check that your API key is correct in Settings, then try again.</p>
+        <button class="refresh-btn" onclick="fetchInsight()">↺ Try again</button>
+      </div>`;
+    }
+  }
+
+  // ── SETTINGS ──
+  function saveSettings() {
+    apiKey = document.getElementById('api-key-input').value.trim();
+    localStorage.setItem('uplift_apikey', apiKey);
+    const msg = document.getElementById('saved-msg');
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 2500);
+  }
+
+  function exportData() {
+    const blob = new Blob([JSON.stringify(log, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'uplift-data.json'; a.click();
+    localStorage.setItem('uplift_last_backup', new Date().toLocaleDateString('en-CA'));
+    renderSyncBanners();
+    showToast('Data exported — keep it somewhere safe!');
+  }
+
+  function clearData() {
+    if (confirm('Clear all your Uplift data? This cannot be undone.')) {
+      log = []; localStorage.removeItem('uplift_log');
+      showToast('All data cleared');
+    }
+  }
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const t = document.getElementById('toast'); t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // ── GARMIN LIVE SYNC ──
+  const SYNC_SERVER = 'http://127.0.0.1:8742';
+
+  async function syncGarmin() {
+    const btn = document.getElementById('garmin-sync-btn');
+    const status = document.getElementById('garmin-sync-status');
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Syncing…';
+    status.style.display = 'block';
+    status.style.color = 'var(--text-soft)';
+    status.textContent = 'Connecting to sync server…';
+    try {
+      const res = await fetch(`${SYNC_SERVER}/sync`, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) throw new Error('Server error');
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Unknown error');
+      let added = 0, updated = 0;
+      (data.days || []).forEach(d => {
+        const { date: ds, ...garminData } = d;
+        const result = mergeGarminIntoLog(ds, garminData);
+        if (result === 'added') added++; else updated++;
+      });
+      log.sort((a, b) => b.date.localeCompare(a.date));
+      localStorage.setItem('uplift_log', JSON.stringify(log));
+      recordGarminSync();
+      status.style.color = 'var(--success)';
+      status.textContent = `Synced! ${added} new days added, ${updated} existing entries updated.`;
+    } catch (err) {
+      status.style.color = '#C0392B';
+      if (err.name === 'TimeoutError' || err.message.includes('fetch')) {
+        status.textContent = 'Could not reach the sync server. Make sure uplift_garmin_sync.py is running on your PC.';
+      } else {
+        status.textContent = `Sync failed: ${err.message}`;
+      }
+    } finally {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Sync Garmin now';
+    }
+  }
+
+  function downloadSyncScript(e) {
+    if (e) e.preventDefault();
+    const script = `DOWNLOAD_UPLIFT_GARMIN_SYNC=true`;
+    // Redirect to the script file if hosted, otherwise show instructions
+    showToast('Download uplift_garmin_sync.py from where you saved it, or ask Claude to regenerate it.');
+  }
+
+  function showGarminStatus(msg, isError, isSuccess) {
+    const el = document.getElementById('garmin-status');
+    el.style.display = 'block';
+    el.style.color = isError ? '#C0392B' : isSuccess ? 'var(--success)' : 'var(--text-soft)';
+    el.innerHTML = msg;
+  }
+
+  function toLocalDate(str) {
+    if (!str) return null;
+    const d = new Date(str);
+    if (isNaN(d)) return null;
+    return d.toLocaleDateString('en-CA');
+  }
+
+  function mergeGarminIntoLog(ds, garminData) {
+    const existing = log.find(e => e.date === ds);
+    upsertLogEntry(ds, { garmin: garminData });
+    return existing ? 'updated' : 'added';
+  }
+
+  function importGarminUDS(input) {
+    const file = input.files[0]; if (!file) return;
+    showGarminStatus('Reading daily summary file…', false, false);
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        const entries = Array.isArray(data) ? data : (data.dailySummaries || data.summaries || [data]);
+        let added = 0, updated = 0, skipped = 0;
+        entries.forEach(entry => {
+          const ds = toLocalDate(entry.calendarDate || entry.date || entry.startTimeGMT || entry.summaryDate);
+          if (!ds) { skipped++; return; }
+          const garminData = {};
+          if (entry.restingHeartRate != null) garminData.restingHR = entry.restingHeartRate;
+          if (entry.minHeartRate != null) garminData.minHR = entry.minHeartRate;
+          if (entry.maxHeartRate != null) garminData.maxHR = entry.maxHeartRate;
+          if (entry.averageStressLevel != null) garminData.avgStress = entry.averageStressLevel;
+          if (entry.maxStressLevel != null) garminData.maxStress = entry.maxStressLevel;
+          if (entry.stressQualifier != null) garminData.stressQualifier = entry.stressQualifier;
+          if (entry.totalSteps != null) garminData.steps = entry.totalSteps;
+          if (entry.totalKilocalories != null) garminData.calories = entry.totalKilocalories;
+          if (entry.floorsAscended != null) garminData.floors = entry.floorsAscended;
+          if (Object.keys(garminData).length === 0) { skipped++; return; }
+          const result = mergeGarminIntoLog(ds, garminData);
+          if (result === 'added') added++; else updated++;
+        });
+        log.sort((a, b) => b.date.localeCompare(a.date));
+        localStorage.setItem('uplift_log', JSON.stringify(log));
+        recordGarminSync();
+        input.value = '';
+        showGarminStatus(`Done! ${added} new days added, ${updated} existing entries enriched with HR & stress data. ${skipped ? skipped + ' entries skipped (no usable data).' : ''}`, false, true);
+        updateGarminBadge();
+        renderSyncBanners();
+      } catch(err) {
+        showGarminStatus('Could not read this file. Make sure it\'s a Garmin UDSFile JSON from your data export.', true, false);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ── LOSE IT IMPORT ──
+  function importLoseIt(input) {
+    const files = Array.from(input.files);
+    if (!files.length) return;
+    const status = document.getElementById('loseit-status');
+    status.style.display = 'block';
+    status.style.color = 'var(--text-soft)';
+    status.textContent = `Reading ${files.length} file${files.length > 1 ? 's' : ''}…`;
+
+    let totalAdded = 0, totalUpdated = 0, filesProcessed = 0;
+
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const lines = e.target.result.split('\n').map(l => l.trim()).filter(Boolean);
+          if (lines.length < 2) { filesProcessed++; checkDone(); return; }
+          const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
+          const dateIdx = headers.findIndex(h => h.includes('date'));
+          const calIdx = headers.findIndex(h => h.includes('calorie') || h === 'calories');
+          const fatIdx = headers.findIndex(h => h === 'fat' || h.includes('fat (g)'));
+          const carbIdx = headers.findIndex(h => h === 'carbs' || h.includes('carb'));
+          const proteinIdx = headers.findIndex(h => h === 'protein' || h.includes('protein'));
+          const sodiumIdx = headers.findIndex(h => h === 'sodium' || h.includes('sodium'));
+          if (dateIdx === -1) { filesProcessed++; checkDone(); return; }
+
+          const dailyMap = {};
+          lines.slice(1).forEach(line => {
+            const cols = line.split(',').map(c => c.replace(/"/g,'').trim());
+            const ds = toLocalDate(cols[dateIdx]);
+            if (!ds) return;
+            if (!dailyMap[ds]) dailyMap[ds] = { calories: 0, fat: 0, carbs: 0, protein: 0, sodium: 0, items: 0 };
+            const d = dailyMap[ds];
+            if (calIdx >= 0 && cols[calIdx]) d.calories += parseFloat(cols[calIdx]) || 0;
+            if (fatIdx >= 0 && cols[fatIdx]) d.fat += parseFloat(cols[fatIdx]) || 0;
+            if (carbIdx >= 0 && cols[carbIdx]) d.carbs += parseFloat(cols[carbIdx]) || 0;
+            if (proteinIdx >= 0 && cols[proteinIdx]) d.protein += parseFloat(cols[proteinIdx]) || 0;
+            if (sodiumIdx >= 0 && cols[sodiumIdx]) d.sodium += parseFloat(cols[sodiumIdx]) || 0;
+            d.items++;
+          });
+
+          Object.entries(dailyMap).forEach(([ds, nutrition]) => {
+            const loseItData = {
+              calories: Math.round(nutrition.calories),
+              fat: Math.round(nutrition.fat),
+              carbs: Math.round(nutrition.carbs),
+              protein: Math.round(nutrition.protein),
+              sodium: Math.round(nutrition.sodium)
+            };
+            const existing = log.find(e => e.date === ds);
+            upsertLogEntry(ds, { loseIt: loseItData });
+            if (existing) totalUpdated++; else totalAdded++;
+          });
+
+        } catch(err) { console.error(err); }
+        filesProcessed++;
+        checkDone();
+      };
+      reader.readAsText(file);
+    });
+
+    function checkDone() {
+      if (filesProcessed < files.length) return;
+      log.sort((a, b) => b.date.localeCompare(a.date));
+      localStorage.setItem('uplift_log', JSON.stringify(log));
+      localStorage.setItem('uplift_last_loseit_sync', new Date().toLocaleDateString('en-CA'));
+      input.value = '';
+      status.style.color = 'var(--success)';
+      status.textContent = `Done! ${totalAdded} new days added, ${totalUpdated} existing entries enriched with Lose It nutrition data.`;
+      renderSyncBanners();
+    }
+  }
+
+  function recordGarminSync() {
+    localStorage.setItem('uplift_last_garmin_sync', new Date().toLocaleDateString('en-CA'));
+    renderSyncBanners();
+  }
+
+  function checkGarminReminder() {
+    const last = localStorage.getItem('uplift_last_garmin_sync');
+    const reminder = document.getElementById('garmin-reminder');
+    if (!reminder) return;
+    if (!last) { reminder.style.display = 'block'; return; }
+    const daysSince = Math.floor((new Date() - new Date(last + 'T12:00:00')) / 86400000);
+    reminder.style.display = daysSince >= 7 ? 'block' : 'none';
+  }
+
+  function updateGarminBadge() {
+    const last = localStorage.getItem('uplift_last_garmin_sync');
+    const badge = document.getElementById('garmin-badge');
+    if (!badge) return;
+    if (last) { badge.style.display = 'block'; badge.textContent = 'Last sync: ' + formatDate(last); }
+  }
+
+  init();
+</script>
+</body>
+</html>
