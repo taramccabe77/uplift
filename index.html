@@ -61,8 +61,8 @@
   body.night-mode .tag-food      { background: #1A2A4A; color: #A8C4F0; }
   body.night-mode .tag-nutrition { background: #1A2A4A; color: #A8C4F0; }
   body.night-mode .tag-sym       { background: #1E1A3E; color: #B8B0E8; }
-  body.night-mode .tag-dream     { background: #1E1A3E; color: #B8B0E8; }
-  body.night-mode .tag-sleep     { background: #0E1E38; color: #7B9ED9; }
+  body.night-mode .tag-dream     { background: #2A2060; color: #C8C0F8; }
+  body.night-mode .tag-sleep     { background: #1A3A6A; color: #A8C8F8; }
   body.night-mode .tag-exercise  { background: #0E1E38; color: #7B9ED9; }
   body.night-mode .tag-mood      { background: #1E1A3E; color: #B8B0E8; }
   body.night-mode .tag-energy    { background: #1E1A3E; color: #B8B0E8; }
@@ -280,7 +280,7 @@
   .save-btn:active { transform: scale(0.98); }
 
   /* ── TRENDS ── */
-  .metric-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .metric-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
   .metric-card {
     background: var(--warm-white); border: 0.5px solid var(--border);
     border-radius: var(--radius-sm); padding: 14px;
@@ -496,6 +496,15 @@
   }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   body.night-mode #toast { background: #1A2A4A; color: #E8F0FF; }
+
+  .trend-toggle {
+    padding: 7px 18px; border-radius: var(--radius-xs);
+    border: 0.5px solid var(--border-mid); background: var(--cream);
+    font-family: var(--font-sans); font-size: 14px; font-weight: 500;
+    color: var(--text-soft); cursor: pointer; transition: all 0.15s;
+  }
+  .trend-toggle.active { background: var(--terra); border-color: var(--terra); color: #fff; }
+  body.night-mode .trend-toggle.active { background: #3A6ABE; border-color: #3A6ABE; }
 
   /* ── CYCLE RING ── */
   .cycle-visual {
@@ -812,10 +821,66 @@
     </div>
     <div class="scroll-area">
       <div id="sync-banners-trends" class="sync-banners-wrap"></div>
+
+      <!-- Day range toggle -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button id="toggle-30" onclick="setTrendRange(30)" class="trend-toggle active">30 days</button>
+        <button id="toggle-180" onclick="setTrendRange(180)" class="trend-toggle">6 months</button>
+        <button id="toggle-all" onclick="setTrendRange(0)" class="trend-toggle">All time</button>
+      </div>
+
       <div class="metric-row" id="metric-row"></div>
+
       <div class="card">
-        <div class="card-label">Energy — last 7 days</div>
+        <div id="energy-chart-label" class="card-label">Energy</div>
         <div class="bar-chart" id="bar-chart"></div>
+      </div>
+      <div class="card" id="sleep-chart-card">
+        <div id="sleep-chart-label" class="card-label">Sleep</div>
+        <div class="bar-chart" id="sleep-chart"></div>
+      </div>
+      <div class="card" id="stress-chart-card">
+        <div id="stress-chart-label" class="card-label">Stress</div>
+        <div class="bar-chart" id="stress-chart"></div>
+      </div>
+      <div class="card" id="cycle-chart-card" style="display:none;">
+        <div class="card-label">Cycle phases</div>
+        <div id="cycle-chart"></div>
+      </div>
+      <div class="card" id="nutrition-chart-card" style="display:none;">
+        <div id="nutrition-chart-label" class="card-label">Calories</div>
+        <div class="bar-chart" id="nutrition-chart"></div>
+      </div>
+      <div class="card" id="steps-chart-card" style="display:none;">
+        <div id="steps-chart-label" class="card-label">Steps</div>
+        <div class="bar-chart" id="steps-chart"></div>
+      </div>
+      <div class="card" id="exercise-chart-card" style="display:none;">
+        <div id="exercise-chart-label" class="card-label">Exercise</div>
+        <div id="exercise-chart"></div>
+      </div>
+      <div class="card" id="food-chart-card" style="display:none;">
+        <div id="food-chart-label" class="card-label">Food quality</div>
+        <div id="food-chart"></div>
+      </div>
+      <div class="card" id="activity-chart-card" style="display:none;">
+        <div id="activity-chart-label" class="card-label">Daily activities</div>
+        <div id="activity-chart"></div>
+      </div>
+      <div class="card" id="flow-chart-card" style="display:none;">
+        <div id="flow-chart-label" class="card-label">Flow</div>
+        <div id="flow-chart"></div>
+      </div>
+        <div class="card-label">Patterns</div>
+        <div id="trend-insights"></div>
+      </div>
+      <div class="card" id="trend-insights-card" style="display:none;">
+        <div id="symptom-chart-label" class="card-label">Common symptoms</div>
+        <div id="symptom-chart"></div>
+      </div>
+      <div class="card" id="mood-chart-card" style="display:none;">
+        <div id="mood-chart-label" class="card-label">Mood</div>
+        <div id="mood-chart"></div>
       </div>
       <div class="card">
         <div class="card-label">Recent log</div>
@@ -1522,50 +1587,530 @@
     if (phaseLabel) phaseLabel.textContent = 'Your daily recommendations';
   }
 
+  let trendRange = 30;
+
+  function setTrendRange(n) {
+    trendRange = n;
+    document.getElementById('toggle-30').classList.toggle('active', n === 30);
+    document.getElementById('toggle-180').classList.toggle('active', n === 180);
+    document.getElementById('toggle-all').classList.toggle('active', n === 0);
+    renderTrends();
+  }
+
   function renderTrends() {
     renderMetrics();
     renderBarChart();
+    renderSleepChart();
+    renderStressChart();
+    renderStepsChart();
+    renderNutritionChart();
+    renderExerciseChart();
+    renderFoodChart();
+    renderActivityChart();
+    renderFlowChart();
+    renderCycleChart();
+    renderTrendInsights();
+    renderSymptomChart();
+    renderMoodChart();
     renderLogList();
+  }
+
+  // ── helper: get last N days of log entries (0 = all time) ──
+  function getDaysData(n) {
+    const today = new Date();
+    if (n === 0) {
+      // All time — use every date in the log
+      const allDates = [...new Set(log.map(e => e.date))].sort();
+      return allDates.map(ds => {
+        const d = new Date(ds + 'T12:00:00');
+        return { date: ds, day: d, entry: log.find(e => e.date === ds) || null };
+      });
+    }
+    const result = [];
+    for (let i = n - 1; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const ds = d.toLocaleDateString('en-CA');
+      result.push({ date: ds, day: d, entry: log.find(e => e.date === ds) || null });
+    }
+    return result;
+  }
+
+  // ── Phase colour helpers ──
+  const phaseBarColors = {
+    menstrual:  { day: '#E8A0B0', night: '#3A1A2E' },
+    follicular: { day: '#C46B4A', night: '#2A1E10' },
+    ovulation:  { day: '#E8934A', night: '#2A2010' },
+    luteal:     { day: '#9B7BB8', night: '#1E1A3E' },
+  };
+  function phaseColor(phase, isNight) {
+    const p = phaseBarColors[phase];
+    return p ? (isNight ? p.night : p.day) : null;
   }
 
   function renderMetrics() {
     const row = document.getElementById('metric-row');
+    const data = getDaysData(trendRange);
+    const entries = data.map(d => d.entry).filter(Boolean);
     const total = log.length;
-    const highEnergy = log.filter(e => e.energy === 'High').length;
+    const highEnergy = entries.filter(e => e.energy === 'High').length;
+    const avgSleep = (() => {
+      const sl = entries.filter(e => e.sleepHours);
+      if (!sl.length) return null;
+      return (sl.reduce((a, e) => a + e.sleepHours, 0) / sl.length).toFixed(1);
+    })();
+    const avgCals = (() => {
+      const cl = entries.filter(e => e.loseIt?.calories);
+      if (!cl.length) return null;
+      return Math.round(cl.reduce((a, e) => a + e.loseIt.calories, 0) / cl.length);
+    })();
+    const avgSteps = (() => {
+      const st = entries.filter(e => e.garmin?.steps);
+      if (!st.length) return null;
+      return Math.round(st.reduce((a, e) => a + e.garmin.steps, 0) / st.length).toLocaleString();
+    })();
+    const streak = (() => {
+      let s = 0;
+      const today = new Date();
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(today); d.setDate(d.getDate() - i);
+        if (log.find(e => e.date === d.toLocaleDateString('en-CA'))) s++; else break;
+      }
+      return s;
+    })();
     row.innerHTML = `
-      <div class="metric-card">
-        <div class="metric-num">${total}</div>
-        <div class="metric-label">Total check-ins</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-num">${total ? Math.round(highEnergy / total * 100) : 0}%</div>
-        <div class="metric-label">High energy days</div>
-      </div>`;
+      <div class="metric-card"><div class="metric-num">${total}</div><div class="metric-label">Total check-ins</div></div>
+      <div class="metric-card"><div class="metric-num">${streak}</div><div class="metric-label">Day streak</div></div>
+      <div class="metric-card"><div class="metric-num">${entries.length ? Math.round(highEnergy / entries.length * 100) : 0}%</div><div class="metric-label">High energy days</div></div>
+      ${avgSleep ? `<div class="metric-card"><div class="metric-num">${avgSleep}h</div><div class="metric-label">Avg sleep</div></div>` : ''}
+      ${avgCals ? `<div class="metric-card"><div class="metric-num">${avgCals}</div><div class="metric-label">Avg calories</div></div>` : ''}
+      ${avgSteps ? `<div class="metric-card"><div class="metric-num">${avgSteps}</div><div class="metric-label">Avg steps</div></div>` : ''}
+    `;
   }
 
   function renderBarChart() {
     const chart = document.getElementById('bar-chart');
+    const label = document.getElementById('energy-chart-label');
+    const isNight = document.body.classList.contains('night-mode');
+    const energyColors = isNight
+      ? { Low: '#4A3860', Moderate: '#5A4820', High: '#1A4030' }
+      : { Low: '#C39BD3', Moderate: '#D4A054', High: '#6B9E7A' };
     const eMap = { Low: 1, Moderate: 2, High: 3 };
-    const colors = { Low: '#C39BD3', Moderate: '#D4A054', High: '#6B9E7A' };
-    const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-    const today = new Date();
+    const days30 = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    const data = getDaysData(trendRange);
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Energy — ${rangeLabel}`;
     chart.innerHTML = '';
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(today); d.setDate(d.getDate() - i);
-      const ds = d.toLocaleDateString('en-CA');
-      const entry = log.find(e => e.date === ds);
+    chart.style.height = '70px';
+
+    const showEvery = trendRange <= 30 ? 1 : trendRange <= 180 ? 7 : 30;
+    data.forEach(({ day, entry }, idx) => {
       const val = entry ? (eMap[entry.energy] || 0) : 0;
-      const col = document.createElement('div');
-      col.className = 'bar-col';
-      const bar = document.createElement('div');
-      bar.className = 'bar-fill';
-      bar.style.height = val ? (val * 30) + 'px' : '3px';
-      bar.style.background = val ? colors[entry.energy] : 'var(--border)';
-      const lbl = document.createElement('div');
-      lbl.className = 'bar-day'; lbl.textContent = days[d.getDay()];
-      col.appendChild(bar); col.appendChild(lbl);
+      const phase = entry?.phase;
+      const col = document.createElement('div'); col.className = 'bar-col';
+      const bar = document.createElement('div'); bar.className = 'bar-fill';
+      bar.style.height = val ? (val * 20) + 'px' : '3px';
+      bar.style.background = val
+        ? (phase ? (phaseColor(phase, isNight) || energyColors[entry.energy]) : energyColors[entry.energy])
+        : 'var(--border)';
+      if (idx % showEvery === 0 || idx === data.length - 1) {
+        const lbl = document.createElement('div'); lbl.className = 'bar-day';
+        lbl.textContent = trendRange === 7 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][day.getDay()] : (day.getDate() === 1 || idx === 0 ? day.toLocaleDateString('en-GB', { month: 'short' }) : day.getDate());
+        col.appendChild(bar); col.appendChild(lbl);
+      } else {
+        col.appendChild(bar);
+      }
       chart.appendChild(col);
+    });
+  }
+
+  function renderSleepChart() {
+    const chart = document.getElementById('sleep-chart');
+    const card  = document.getElementById('sleep-chart-card');
+    const label = document.getElementById('sleep-chart-label');
+    const isNight = document.body.classList.contains('night-mode');
+    const data = getDaysData(trendRange);
+    const hasData = data.some(({ entry }) => entry?.sleepHours || entry?.garmin?.sleepDurationMins);
+    if (!hasData) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Sleep — ${rangeLabel}`;
+    chart.innerHTML = '';
+    const showEvery = trendRange <= 30 ? 1 : trendRange <= 180 ? 7 : 30;
+    data.forEach(({ day, entry }, idx) => {
+      const hrs = entry ? (entry.sleepHours || (entry.garmin?.sleepDurationMins ? entry.garmin.sleepDurationMins / 60 : 0)) : 0;
+      const phase = entry?.phase;
+      const col = document.createElement('div'); col.className = 'bar-col';
+      const bar = document.createElement('div'); bar.className = 'bar-fill';
+      bar.style.height = hrs ? Math.max((hrs / 10) * 60, 3) + 'px' : '3px';
+      bar.style.background = hrs ? (phase ? (phaseColor(phase, isNight) || (isNight ? '#1A3A6A' : '#7A9EC8')) : (isNight ? '#1A3A6A' : '#7A9EC8')) : 'var(--border)';
+      if (idx % showEvery === 0 || idx === data.length - 1) {
+        const lbl = document.createElement('div'); lbl.className = 'bar-day';
+        lbl.textContent = trendRange <= 30 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][day.getDay()] : (day.getDate() === 1 || idx === 0 ? day.toLocaleDateString('en-GB', { month: 'short' }) : day.getDate());
+        col.appendChild(bar); col.appendChild(lbl);
+      } else { col.appendChild(bar); }
+      chart.appendChild(col);
+    });
+  }
+
+  function renderStressChart() {
+    const chart = document.getElementById('stress-chart');
+    const card  = document.getElementById('stress-chart-card');
+    const label = document.getElementById('stress-chart-label');
+    const isNight = document.body.classList.contains('night-mode');
+    const data = getDaysData(trendRange);
+    const hasData = data.some(({ entry }) => entry?.garmin?.avgStress);
+    if (!hasData) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Stress — ${rangeLabel}`;
+    chart.innerHTML = '';
+    const showEvery = trendRange <= 30 ? 1 : trendRange <= 180 ? 7 : 30;
+    data.forEach(({ day, entry }, idx) => {
+      const stress = entry?.garmin?.avgStress || 0;
+      const col = document.createElement('div'); col.className = 'bar-col';
+      const bar = document.createElement('div'); bar.className = 'bar-fill';
+      bar.style.height = stress ? Math.max((stress / 100) * 60, 3) + 'px' : '3px';
+      bar.style.background = stress
+        ? (stress < 33 ? (isNight ? '#1A4030' : '#6B9E7A') : stress < 66 ? (isNight ? '#5A4820' : '#D4A054') : (isNight ? '#5A2020' : '#C45E6A'))
+        : 'var(--border)';
+      if (idx % showEvery === 0 || idx === data.length - 1) {
+        const lbl = document.createElement('div'); lbl.className = 'bar-day';
+        lbl.textContent = trendRange <= 30 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][day.getDay()] : (day.getDate() === 1 || idx === 0 ? day.toLocaleDateString('en-GB', { month: 'short' }) : day.getDate());
+        col.appendChild(bar); col.appendChild(lbl);
+      } else { col.appendChild(bar); }
+      chart.appendChild(col);
+    });
+  }
+
+  function renderCycleChart() {
+    const card = document.getElementById('cycle-chart-card');
+    const el   = document.getElementById('cycle-chart');
+    const data = getDaysData(trendRange);
+    const phaseEntries = data.filter(({ entry }) => entry?.phase);
+    if (phaseEntries.length < 3) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    // Count days per phase
+    const phaseCounts = {};
+    const phaseLabels = { menstrual: 'Menstrual', follicular: 'Follicular', ovulation: 'Ovulation', luteal: 'Luteal' };
+    phaseEntries.forEach(({ entry }) => {
+      phaseCounts[entry.phase] = (phaseCounts[entry.phase] || 0) + 1;
+    });
+    const total = phaseEntries.length;
+    const isNight = document.body.classList.contains('night-mode');
+
+    el.innerHTML = `
+      <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin-bottom:12px;">
+        ${Object.entries(phaseCounts).map(([phase, n]) =>
+          `<div title="${phaseLabels[phase] || phase}" style="flex:${n};background:${phaseColor(phase, isNight) || 'var(--border)'};"></div>`
+        ).join('')}
+      </div>
+      ${Object.entries(phaseCounts).map(([phase, n]) => `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:${phaseColor(phase, isNight) || 'var(--border)'};flex-shrink:0;"></div>
+          <div style="font-size:14px;color:var(--text-mid);flex:1;">${phaseLabels[phase] || phase}</div>
+          <div style="font-size:13px;color:var(--text-hint);">${n} day${n !== 1 ? 's' : ''} · ${Math.round(n/total*100)}%</div>
+        </div>`).join('')}
+    `;
+  }
+
+  function renderTrendInsights() {
+    const card = document.getElementById('trend-insights-card');
+    const el   = document.getElementById('trend-insights');
+    const data = getDaysData(trendRange);
+    const recent = data.map(d => d.entry).filter(Boolean);
+    if (recent.length < 3) { card.style.display = 'none'; return; }
+
+    const insights = [];
+
+    // Energy trend
+    const eScores = recent.filter(e => e.energy).map(e => ({ Low: 1, Moderate: 2, High: 3 })[e.energy]);
+    if (eScores.length >= 4) {
+      const half = Math.floor(eScores.length / 2);
+      const avg = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+      const diff = avg(eScores.slice(0, half)) - avg(eScores.slice(half));
+      if (diff > 0.4) insights.push('Your energy has been rising recently.');
+      else if (diff < -0.4) insights.push('Your energy has dipped compared to earlier in this period.');
     }
+
+    // Sleep consistency
+    const sleepEntries = recent.filter(e => e.sleepHours);
+    if (sleepEntries.length >= 4) {
+      const hrs = sleepEntries.map(e => e.sleepHours);
+      const avg = hrs.reduce((a, b) => a + b, 0) / hrs.length;
+      const variance = hrs.reduce((a, b) => a + Math.abs(b - avg), 0) / hrs.length;
+      if (avg >= 7.5) insights.push(`Averaging ${avg.toFixed(1)} hours of sleep — that's solid.`);
+      else if (avg < 6.5) insights.push(`Average sleep is ${avg.toFixed(1)} hours — a little more rest could help.`);
+      if (variance > 1.5) insights.push('Sleep duration varies quite a bit — a consistent bedtime tends to improve quality.');
+    }
+
+    // Stress
+    const stressEntries = recent.filter(e => e.garmin?.avgStress);
+    if (stressEntries.length >= 3) {
+      const avg = stressEntries.reduce((a, e) => a + e.garmin.avgStress, 0) / stressEntries.length;
+      if (avg > 60) insights.push(`Average stress has been elevated (${Math.round(avg)}) — your body may need more recovery.`);
+      else if (avg < 35) insights.push(`Stress levels have been low (avg ${Math.round(avg)}) — your nervous system seems settled.`);
+    }
+
+    // Cycle-aware energy insight
+    const phaseEnergyMap = {};
+    recent.filter(e => e.phase && e.energy).forEach(e => {
+      if (!phaseEnergyMap[e.phase]) phaseEnergyMap[e.phase] = [];
+      phaseEnergyMap[e.phase].push({ Low: 1, Moderate: 2, High: 3 }[e.energy]);
+    });
+    const highPhase  = Object.entries(phaseEnergyMap).sort((a, b) => (b[1].reduce((x,y)=>x+y,0)/b[1].length) - (a[1].reduce((x,y)=>x+y,0)/a[1].length))[0];
+    const lowPhase   = Object.entries(phaseEnergyMap).sort((a, b) => (a[1].reduce((x,y)=>x+y,0)/a[1].length) - (b[1].reduce((x,y)=>x+y,0)/b[1].length))[0];
+    const phaseLabelsShort = { menstrual: 'menstrual', follicular: 'follicular', ovulation: 'ovulation', luteal: 'luteal' };
+    if (highPhase && lowPhase && highPhase[0] !== lowPhase[0]) {
+      insights.push(`Your energy tends to be highest during ${phaseLabelsShort[highPhase[0]] || highPhase[0]} phase and lower during ${phaseLabelsShort[lowPhase[0]] || lowPhase[0]}.`);
+    }
+
+    // Cycle-aware sleep insight
+    const phaseSleepMap = {};
+    recent.filter(e => e.phase && e.sleepHours).forEach(e => {
+      if (!phaseSleepMap[e.phase]) phaseSleepMap[e.phase] = [];
+      phaseSleepMap[e.phase].push(e.sleepHours);
+    });
+    const bestSleepPhase = Object.entries(phaseSleepMap).sort((a,b) => (b[1].reduce((x,y)=>x+y,0)/b[1].length) - (a[1].reduce((x,y)=>x+y,0)/a[1].length))[0];
+    if (bestSleepPhase && phaseSleepMap[bestSleepPhase[0]].length >= 2) {
+      const avg = (bestSleepPhase[1].reduce((a,b)=>a+b,0)/bestSleepPhase[1].length).toFixed(1);
+      insights.push(`You sleep longest during ${phaseLabelsShort[bestSleepPhase[0]] || bestSleepPhase[0]} phase (avg ${avg}h).`);
+    }
+
+    // Nutrition from Lose It
+    const calEntries = recent.filter(e => e.loseIt?.calories);
+    if (calEntries.length >= 4) {
+      const avg = Math.round(calEntries.reduce((a, e) => a + e.loseIt.calories, 0) / calEntries.length);
+      const proteinAvg = Math.round(calEntries.reduce((a, e) => a + (e.loseIt.protein || 0), 0) / calEntries.length);
+      insights.push(`Averaging ${avg} calories and ${proteinAvg}g protein per day across logged days.`);
+    }
+    const skipped = recent.filter(e => e.food === 'Skipped meals' || e.food === 'Irregular').length;
+    if (skipped >= 3) insights.push(`You've logged skipped or irregular meals ${skipped} times recently — consistent eating supports your cycle.`);
+
+    // Exercise frequency
+    const exerciseDays = recent.filter(e => e.exercise).length;
+    if (exerciseDays >= 4) insights.push(`You moved ${exerciseDays} out of the last ${recent.length} logged days — great consistency.`);
+    else if (recent.length >= 7 && exerciseDays <= 1) insights.push('Exercise has been light recently — even short walks can support energy and mood.');
+
+    // Mood
+    const anxious = recent.filter(e => e.mood === 'Anxious').length;
+    const calm    = recent.filter(e => e.mood === 'Calm' || e.mood === 'Happy').length;
+    if (anxious >= 3) insights.push('Anxious has come up several times recently — worth noting if it feels persistent.');
+    if (calm >= 5) insights.push('You\'ve been logging calm or happy moods regularly — things seem settled.');
+
+    // Symptoms
+    const allSymptoms = recent.flatMap(e => e.symptoms || []);
+    const symCount = allSymptoms.reduce((a, s) => { a[s] = (a[s] || 0) + 1; return a; }, {});
+    const frequent = Object.entries(symCount).filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]);
+    if (frequent.length) insights.push(`${frequent[0][0]} has appeared ${frequent[0][1]} times in this period.`);
+
+    if (!insights.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    el.innerHTML = insights.map(i => `<p style="font-size:15px;color:var(--text-soft);line-height:1.6;padding:8px 0;border-bottom:0.5px solid var(--border);">${i}</p>`).join('');
+  }
+
+  function renderSymptomChart() {
+    const card = document.getElementById('symptom-chart-card');
+    const label = document.getElementById('symptom-chart-label');
+    const el   = document.getElementById('symptom-chart');
+    const data = getDaysData(trendRange);
+    const allSymptoms = data.flatMap(({ entry }) => entry?.symptoms || []);
+    if (!allSymptoms.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Common symptoms — ${rangeLabel}`;
+    const counts = allSymptoms.reduce((a, s) => { a[s] = (a[s] || 0) + 1; return a; }, {});
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const max = sorted[0][1];
+    el.innerHTML = sorted.map(([sym, n]) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+        <div style="font-size:14px;color:var(--text-mid);min-width:110px;flex-shrink:0;">${sym}</div>
+        <div style="flex:1;background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+          <div style="height:100%;border-radius:4px;background:var(--terra);width:${Math.round(n/max*100)}%;transition:width 0.4s;"></div>
+        </div>
+        <div style="font-size:13px;color:var(--text-hint);min-width:20px;text-align:right;">${n}</div>
+      </div>`).join('');
+  }
+
+  function renderMoodChart() {
+    const card = document.getElementById('mood-chart-card');
+    const label = document.getElementById('mood-chart-label');
+    const el   = document.getElementById('mood-chart');
+    const data = getDaysData(trendRange);
+    const moodEntries = data.map(({ entry }) => entry).filter(e => e?.mood);
+    if (moodEntries.length < 3) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Mood — ${rangeLabel}`;
+    const counts = moodEntries.reduce((a, e) => { a[e.mood] = (a[e.mood] || 0) + 1; return a; }, {});
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const max = sorted[0][1];
+    const moodColours = {
+      Calm: '#6B9E7A', Happy: '#D4A054', Anxious: '#C45E6A', Low: '#9B7BB8',
+      Irritable: '#C46B4A', Overwhelmed: '#8C3828', Content: '#7A9EC8', Motivated: '#6B9E7A'
+    };
+    el.innerHTML = sorted.map(([mood, n]) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+        <div style="font-size:14px;color:var(--text-mid);min-width:110px;flex-shrink:0;">${mood}</div>
+        <div style="flex:1;background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+          <div style="height:100%;border-radius:4px;background:${moodColours[mood] || 'var(--terra)'};width:${Math.round(n/max*100)}%;transition:width 0.4s;"></div>
+        </div>
+        <div style="font-size:13px;color:var(--text-hint);min-width:20px;text-align:right;">${n}</div>
+      </div>`).join('');
+  }
+
+  function renderStepsChart() {
+    const chart = document.getElementById('steps-chart');
+    const card  = document.getElementById('steps-chart-card');
+    const label = document.getElementById('steps-chart-label');
+    const isNight = document.body.classList.contains('night-mode');
+    const data = getDaysData(trendRange);
+    const hasData = data.some(({ entry }) => entry?.garmin?.steps);
+    if (!hasData) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Steps — ${rangeLabel}`;
+    chart.innerHTML = '';
+    const maxSteps = Math.max(...data.map(({ entry }) => entry?.garmin?.steps || 0));
+    const showEvery = trendRange <= 30 ? 1 : trendRange <= 180 ? 7 : 30;
+    data.forEach(({ day, entry }, idx) => {
+      const steps = entry?.garmin?.steps || 0;
+      const col = document.createElement('div'); col.className = 'bar-col';
+      const bar = document.createElement('div'); bar.className = 'bar-fill';
+      bar.style.height = steps ? Math.max((steps / maxSteps) * 60, 3) + 'px' : '3px';
+      bar.style.background = steps ? (isNight ? '#1A3A5A' : '#5A8AC8') : 'var(--border)';
+      if (idx % showEvery === 0 || idx === data.length - 1) {
+        const lbl = document.createElement('div'); lbl.className = 'bar-day';
+        lbl.textContent = trendRange <= 30 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][day.getDay()] : (day.getDate() === 1 || idx === 0 ? day.toLocaleDateString('en-GB', { month: 'short' }) : day.getDate());
+        col.appendChild(bar); col.appendChild(lbl);
+      } else { col.appendChild(bar); }
+      chart.appendChild(col);
+    });
+  }
+
+  function renderNutritionChart() {
+    const chart = document.getElementById('nutrition-chart');
+    const card  = document.getElementById('nutrition-chart-card');
+    const label = document.getElementById('nutrition-chart-label');
+    const isNight = document.body.classList.contains('night-mode');
+    const data = getDaysData(trendRange);
+    const hasData = data.some(({ entry }) => entry?.loseIt?.calories);
+    if (!hasData) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Calories — ${rangeLabel}`;
+    chart.innerHTML = '';
+    const maxCals = Math.max(...data.map(({ entry }) => entry?.loseIt?.calories || 0));
+    const showEvery = trendRange <= 30 ? 1 : trendRange <= 180 ? 7 : 30;
+    data.forEach(({ day, entry }, idx) => {
+      const cals = entry?.loseIt?.calories || 0;
+      const phase = entry?.phase;
+      const col = document.createElement('div'); col.className = 'bar-col';
+      const bar = document.createElement('div'); bar.className = 'bar-fill';
+      bar.style.height = cals ? Math.max((cals / maxCals) * 60, 3) + 'px' : '3px';
+      bar.style.background = cals ? (phase ? (phaseColor(phase, isNight) || (isNight ? '#4A3020' : '#C4885A')) : (isNight ? '#4A3020' : '#C4885A')) : 'var(--border)';
+      if (idx % showEvery === 0 || idx === data.length - 1) {
+        const lbl = document.createElement('div'); lbl.className = 'bar-day';
+        lbl.textContent = trendRange <= 30 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][day.getDay()] : (day.getDate() === 1 || idx === 0 ? day.toLocaleDateString('en-GB', { month: 'short' }) : day.getDate());
+        col.appendChild(bar); col.appendChild(lbl);
+      } else { col.appendChild(bar); }
+      chart.appendChild(col);
+    });
+  }
+
+  function renderExerciseChart() {
+    const card  = document.getElementById('exercise-chart-card');
+    const label = document.getElementById('exercise-chart-label');
+    const el    = document.getElementById('exercise-chart');
+    const data  = getDaysData(trendRange);
+    const exerciseEntries = data.map(({ entry }) => entry).filter(e => e?.exercise);
+    if (!exerciseEntries.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Exercise — ${rangeLabel}`;
+    const counts = exerciseEntries.reduce((a, e) => { a[e.exercise] = (a[e.exercise] || 0) + 1; return a; }, {});
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const max = sorted[0][1];
+    el.innerHTML = sorted.map(([ex, n]) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+        <div style="font-size:14px;color:var(--text-mid);min-width:110px;flex-shrink:0;">${ex}</div>
+        <div style="flex:1;background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+          <div style="height:100%;border-radius:4px;background:#C45E6A;width:${Math.round(n/max*100)}%;transition:width 0.4s;"></div>
+        </div>
+        <div style="font-size:13px;color:var(--text-hint);min-width:20px;text-align:right;">${n}</div>
+      </div>`).join('');
+  }
+
+  function renderFoodChart() {
+    const card  = document.getElementById('food-chart-card');
+    const label = document.getElementById('food-chart-label');
+    const el    = document.getElementById('food-chart');
+    const data  = getDaysData(trendRange);
+    const foodEntries = data.map(({ entry }) => entry).filter(e => e?.food);
+    if (!foodEntries.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Food quality — ${rangeLabel}`;
+    const counts = foodEntries.reduce((a, e) => { a[e.food] = (a[e.food] || 0) + 1; return a; }, {});
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const max = sorted[0][1];
+    const foodColours = { Nourishing: '#6B9E7A', Balanced: '#7A9EC8', 'Comfort foods': '#D4A054', 'Skipped meals': '#C45E6A', Irregular: '#9B7BB8' };
+    el.innerHTML = sorted.map(([food, n]) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+        <div style="font-size:14px;color:var(--text-mid);min-width:110px;flex-shrink:0;">${food}</div>
+        <div style="flex:1;background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+          <div style="height:100%;border-radius:4px;background:${foodColours[food] || 'var(--terra)'};width:${Math.round(n/max*100)}%;transition:width 0.4s;"></div>
+        </div>
+        <div style="font-size:13px;color:var(--text-hint);min-width:20px;text-align:right;">${n}</div>
+      </div>`).join('');
+  }
+
+  function renderActivityChart() {
+    const card  = document.getElementById('activity-chart-card');
+    const label = document.getElementById('activity-chart-label');
+    const el    = document.getElementById('activity-chart');
+    const data  = getDaysData(trendRange);
+    const allActivities = data.flatMap(({ entry }) => entry?.dailyActivities || []);
+    if (!allActivities.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Daily activities — ${rangeLabel}`;
+    const counts = allActivities.reduce((a, v) => { a[v] = (a[v] || 0) + 1; return a; }, {});
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const max = sorted[0][1];
+    el.innerHTML = sorted.map(([act, n]) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+        <div style="font-size:14px;color:var(--text-mid);min-width:110px;flex-shrink:0;">${act}</div>
+        <div style="flex:1;background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+          <div style="height:100%;border-radius:4px;background:#8A5840;width:${Math.round(n/max*100)}%;transition:width 0.4s;"></div>
+        </div>
+        <div style="font-size:13px;color:var(--text-hint);min-width:20px;text-align:right;">${n}</div>
+      </div>`).join('');
+  }
+
+  function renderFlowChart() {
+    const card  = document.getElementById('flow-chart-card');
+    const label = document.getElementById('flow-chart-label');
+    const el    = document.getElementById('flow-chart');
+    const data  = getDaysData(trendRange);
+    const flowEntries = data.map(({ entry }) => entry).filter(e => e?.flow);
+    if (!flowEntries.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
+    label.textContent = `Flow — ${rangeLabel}`;
+    const counts = flowEntries.reduce((a, e) => { a[e.flow] = (a[e.flow] || 0) + 1; return a; }, {});
+    const order = ['Heavy', 'Medium', 'Light', 'Spotting'];
+    const sorted = order.filter(f => counts[f]).map(f => [f, counts[f]]);
+    const max = sorted.length ? sorted[0][1] : 1;
+    const flowColours = { Heavy: '#8C3828', Medium: '#C46B4A', Light: '#E8A0B0', Spotting: '#F2D9CE' };
+    el.innerHTML = sorted.map(([flow, n]) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+        <div style="font-size:14px;color:var(--text-mid);min-width:110px;flex-shrink:0;">${flow}</div>
+        <div style="flex:1;background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+          <div style="height:100%;border-radius:4px;background:${flowColours[flow]};width:${Math.round(n/max*100)}%;transition:width 0.4s;"></div>
+        </div>
+        <div style="font-size:13px;color:var(--text-hint);min-width:20px;text-align:right;">${n}</div>
+      </div>`).join('');
   }
 
   function renderLogList() {
@@ -1854,46 +2399,98 @@
 
     let totalAdded = 0, totalUpdated = 0, filesProcessed = 0;
 
+    // Keywords for food quality inference
+    const comfortKeywords = ['pizza', 'burger', 'fries', 'chips', 'chocolate', 'ice cream', 'cake', 'cookie', 'biscuit', 'candy', 'donut', 'doughnut', 'fried', 'nugget', 'hotdog', 'crisp', 'popcorn', 'brownie', 'muffin', 'pastry', 'takeaway', 'takeout', 'fast food', 'soda', 'cola', 'lemonade'];
+    const nourishingKeywords = ['salad', 'salmon', 'chicken breast', 'broccoli', 'spinach', 'kale', 'quinoa', 'lentil', 'tofu', 'avocado', 'blueberr', 'berry', 'oats', 'oatmeal', 'greek yogurt', 'yogurt', 'egg', 'tuna', 'turkey', 'sweet potato', 'brown rice', 'whole wheat', 'almond', 'walnut', 'banana', 'apple', 'fruit', 'vegetable', 'bean', 'legume'];
+
+    function inferFoodQuality(items, totalCals, mealTypes) {
+      if (totalCals === 0 || items.length === 0) return 'Skipped meals';
+
+      const logged = new Set(mealTypes.map(m => m.toLowerCase()));
+      const hasBreakfast = logged.has('breakfast');
+      const hasLunch     = logged.has('lunch');
+      const hasDinner    = logged.has('dinner');
+      const mealCount    = [hasBreakfast, hasLunch, hasDinner].filter(Boolean).length;
+
+      // Skipped if fewer than 2 main meals logged
+      if (mealCount < 2) return 'Skipped meals';
+
+      const itemNames = items.map(i => i.name.toLowerCase()).join(' ');
+      const comfortScore  = comfortKeywords.filter(k => itemNames.includes(k)).length;
+      const nourishScore  = nourishingKeywords.filter(k => itemNames.includes(k)).length;
+
+      if (comfortScore >= 2 && nourishScore === 0) return 'Comfort foods';
+      if (nourishScore >= 2 && comfortScore === 0) return 'Nourishing';
+      return 'Balanced';
+    }
+
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
+          // Handle quoted CSV fields properly
+          function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+              if (line[i] === '"') { inQuotes = !inQuotes; }
+              else if (line[i] === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+              else { current += line[i]; }
+            }
+            result.push(current.trim());
+            return result;
+          }
+
           const lines = e.target.result.split('\n').map(l => l.trim()).filter(Boolean);
           if (lines.length < 2) { filesProcessed++; checkDone(); return; }
-          const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
-          const dateIdx = headers.findIndex(h => h.includes('date'));
-          const calIdx = headers.findIndex(h => h.includes('calorie') || h === 'calories');
-          const fatIdx = headers.findIndex(h => h === 'fat' || h.includes('fat (g)'));
-          const carbIdx = headers.findIndex(h => h === 'carbs' || h.includes('carb'));
+
+          const headers = parseCSVLine(lines[0]).map(h => h.replace(/"/g,'').trim().toLowerCase());
+          const dateIdx    = headers.findIndex(h => h.includes('date'));
+          const nameIdx    = headers.findIndex(h => h === 'name' || h === 'food' || h.includes('food name') || h.includes('item'));
+          const typeIdx    = headers.findIndex(h => h === 'type' || h.includes('meal') || h.includes('category'));
+          const calIdx     = headers.findIndex(h => h.includes('calorie') || h === 'calories');
+          const fatIdx     = headers.findIndex(h => h === 'fat' || h.includes('fat (g)'));
+          const carbIdx    = headers.findIndex(h => h === 'carbs' || h.includes('carb'));
           const proteinIdx = headers.findIndex(h => h === 'protein' || h.includes('protein'));
-          const sodiumIdx = headers.findIndex(h => h === 'sodium' || h.includes('sodium'));
+          const sodiumIdx  = headers.findIndex(h => h === 'sodium' || h.includes('sodium'));
           if (dateIdx === -1) { filesProcessed++; checkDone(); return; }
 
           const dailyMap = {};
           lines.slice(1).forEach(line => {
-            const cols = line.split(',').map(c => c.replace(/"/g,'').trim());
+            const cols = parseCSVLine(line).map(c => c.replace(/"/g,'').trim());
             const ds = toLocalDate(cols[dateIdx]);
             if (!ds) return;
-            if (!dailyMap[ds]) dailyMap[ds] = { calories: 0, fat: 0, carbs: 0, protein: 0, sodium: 0, items: 0 };
+            if (!dailyMap[ds]) dailyMap[ds] = { calories: 0, fat: 0, carbs: 0, protein: 0, sodium: 0, items: [], mealTypes: [] };
             const d = dailyMap[ds];
-            if (calIdx >= 0 && cols[calIdx]) d.calories += parseFloat(cols[calIdx]) || 0;
-            if (fatIdx >= 0 && cols[fatIdx]) d.fat += parseFloat(cols[fatIdx]) || 0;
-            if (carbIdx >= 0 && cols[carbIdx]) d.carbs += parseFloat(cols[carbIdx]) || 0;
-            if (proteinIdx >= 0 && cols[proteinIdx]) d.protein += parseFloat(cols[proteinIdx]) || 0;
-            if (sodiumIdx >= 0 && cols[sodiumIdx]) d.sodium += parseFloat(cols[sodiumIdx]) || 0;
-            d.items++;
+            const cal = calIdx >= 0 ? (parseFloat(cols[calIdx]) || 0) : 0;
+            if (calIdx >= 0)     d.calories += cal;
+            if (fatIdx >= 0)     d.fat      += parseFloat(cols[fatIdx])     || 0;
+            if (carbIdx >= 0)    d.carbs    += parseFloat(cols[carbIdx])    || 0;
+            if (proteinIdx >= 0) d.protein  += parseFloat(cols[proteinIdx]) || 0;
+            if (sodiumIdx >= 0)  d.sodium   += parseFloat(cols[sodiumIdx])  || 0;
+            // Capture item name, meal type, calories
+            const name = nameIdx >= 0 ? cols[nameIdx] : '';
+            const type = typeIdx >= 0 ? cols[typeIdx] : '';
+            if (name) d.items.push({ name, type, calories: Math.round(cal) });
+            if (type && !d.mealTypes.includes(type)) d.mealTypes.push(type);
           });
 
           Object.entries(dailyMap).forEach(([ds, nutrition]) => {
+            const inferredFood = inferFoodQuality(nutrition.items, nutrition.calories, nutrition.mealTypes);
             const loseItData = {
               calories: Math.round(nutrition.calories),
-              fat: Math.round(nutrition.fat),
-              carbs: Math.round(nutrition.carbs),
-              protein: Math.round(nutrition.protein),
-              sodium: Math.round(nutrition.sodium)
+              fat:      Math.round(nutrition.fat),
+              carbs:    Math.round(nutrition.carbs),
+              protein:  Math.round(nutrition.protein),
+              sodium:   Math.round(nutrition.sodium),
+              items:    nutrition.items.slice(0, 50), // cap to avoid bloat
+              mealTypes: nutrition.mealTypes,
+              inferredFood,
             };
             const existing = log.find(e => e.date === ds);
-            upsertLogEntry(ds, { loseIt: loseItData });
+            // Lose It always overrides manual food — it has more data
+            upsertLogEntry(ds, { loseIt: loseItData, food: inferredFood });
             if (existing) totalUpdated++; else totalAdded++;
           });
 
