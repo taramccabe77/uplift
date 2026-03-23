@@ -170,7 +170,6 @@
   .scroll-area {
     flex: 1; min-height: 0; overflow-y: auto; padding: 0 16px calc(80px + env(safe-area-inset-bottom));
     -webkit-overflow-scrolling: touch;
-    background: var(--cream);
   }
 
   @media (min-width: 500px) {
@@ -196,7 +195,6 @@
   /* ── HEADER ── */
   .page-header {
     padding: 28px 16px 14px;
-    background: var(--cream);
     flex-shrink: 0;
   }
   .page-header h1 { font-family: var(--font-serif); font-size: 30px; font-weight: 400; color: var(--text-dark); }
@@ -745,7 +743,7 @@
             <p style="font-size:16px;font-weight:500;color:var(--text-mid);margin-bottom:8px;">Or upload a UDSFile manually</p>
             <label style="display:flex;align-items:center;gap:10px;padding:11px 14px;border:0.5px dashed var(--blush-mid);border-radius:var(--radius-sm);cursor:pointer;background:var(--cream);">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C46B4A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-              <span style="font-size:15px;color:var(--terra);">Choose UDSFile JSON</span>
+              <span style="font-size:15px;color:var(--terra);">Choose UDSFile or sleep JSON</span>
               <input type="file" accept=".json" style="display:none" onchange="importGarminUDS(this)">
             </label>
             <div id="garmin-status" style="font-size:16px;color:var(--text-soft);margin-top:10px;line-height:1.5;display:none;"></div>
@@ -754,7 +752,7 @@
                 <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Go to <span style="color:var(--terra);">connect.garmin.com</span> → profile icon → <strong style="font-weight:500;color:var(--text-mid);">Account Settings</strong></li>
                 <li style="font-size:16px;color:var(--text-soft);line-height:1.5;"><strong style="font-weight:500;color:var(--text-mid);">Data Management</strong> → <strong style="font-weight:500;color:var(--text-mid);">Export Your Data</strong> → request export</li>
                 <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Garmin emails you a zip — unzip and open <strong style="font-weight:500;color:var(--text-mid);">DI_CONNECT / DI-Connect-User</strong></li>
-                <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Upload the file starting with <strong style="font-weight:500;color:var(--text-mid);">UDSFile_</strong></li>
+                <li style="font-size:16px;color:var(--text-soft);line-height:1.5;">Upload the file starting with <strong style="font-weight:500;color:var(--text-mid);">UDSFile_</strong> for HR & stress, or the file starting with <strong style="font-weight:500;color:var(--text-mid);">SleepData_</strong> for sleep duration & quality</li>
               </ol>
             </div>
           </div>
@@ -899,11 +897,17 @@
       <span>Log</span>
     </button>
     <button class="nav-btn" id="nav-trends" onclick="showScreen('trends')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12 L4 12 C6 12 6 2 9 2 C12 2 12 22 15 22 C18 22 18 12 20 12 L22 12"/></svg>
       <span>Trends</span>
     </button>
     <button class="nav-btn" id="nav-foryou" onclick="showScreen('foryou')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="22" height="22">
+        <line x1="4" y1="22" x2="26" y2="22"/>
+        <line x1="15" y1="22" x2="15" y2="4"/>
+        <path d="M15 19 Q8 16 10 11 Q13 14 15 19z" fill="currentColor" stroke="none"/>
+        <path d="M15 14 Q22 11 20 6 Q17 9 15 14z" fill="currentColor" stroke="none"/>
+        <path d="M15 10 Q9 7 11 3 Q13 6 15 10z" fill="currentColor" stroke="none"/>
+      </svg>
       <span>For you</span>
     </button>
     <button class="nav-btn" id="nav-insights" onclick="showScreen('insights')">
@@ -1784,21 +1788,46 @@
     reader.onload = function(e) {
       try {
         const data = JSON.parse(e.target.result);
-        const entries = Array.isArray(data) ? data : (data.dailySummaries || data.summaries || [data]);
+        const entries = Array.isArray(data) ? data : (data.dailySummaries || data.summaries || data.sleepData || data.dailySleepDTO ? [data] : [data]);
+
+        // Detect if this is a sleep file
+        const isSleepFile = !!(data.sleepData || data.dailySleepDTO || (Array.isArray(data) && data[0]?.sleepTimeSeconds));
+
         let added = 0, updated = 0, skipped = 0;
         entries.forEach(entry => {
-          const ds = toLocalDate(entry.calendarDate || entry.date || entry.startTimeGMT || entry.summaryDate);
+          const ds = toLocalDate(entry.calendarDate || entry.date || entry.startTimeGMT || entry.summaryDate || entry.sleepStartTimestampGMT);
           if (!ds) { skipped++; return; }
           const garminData = {};
-          if (entry.restingHeartRate != null) garminData.restingHR = entry.restingHeartRate;
-          if (entry.minHeartRate != null) garminData.minHR = entry.minHeartRate;
-          if (entry.maxHeartRate != null) garminData.maxHR = entry.maxHeartRate;
-          if (entry.averageStressLevel != null) garminData.avgStress = entry.averageStressLevel;
-          if (entry.maxStressLevel != null) garminData.maxStress = entry.maxStressLevel;
-          if (entry.stressQualifier != null) garminData.stressQualifier = entry.stressQualifier;
-          if (entry.totalSteps != null) garminData.steps = entry.totalSteps;
-          if (entry.totalKilocalories != null) garminData.calories = entry.totalKilocalories;
-          if (entry.floorsAscended != null) garminData.floors = entry.floorsAscended;
+
+          if (!isSleepFile) {
+            if (entry.restingHeartRate != null) garminData.restingHR = entry.restingHeartRate;
+            if (entry.minHeartRate != null) garminData.minHR = entry.minHeartRate;
+            if (entry.maxHeartRate != null) garminData.maxHR = entry.maxHeartRate;
+            if (entry.averageStressLevel != null) garminData.avgStress = entry.averageStressLevel;
+            if (entry.maxStressLevel != null) garminData.maxStress = entry.maxStressLevel;
+            if (entry.stressQualifier != null) garminData.stressQualifier = entry.stressQualifier;
+            if (entry.totalSteps != null) garminData.steps = entry.totalSteps;
+            if (entry.totalKilocalories != null) garminData.calories = entry.totalKilocalories;
+            if (entry.floorsAscended != null) garminData.floors = entry.floorsAscended;
+          }
+
+          // Sleep fields — present in sleep export files and sometimes in daily summaries
+          const sleepSecs = entry.sleepTimeSeconds ?? entry.totalSleepTimeInSeconds ?? entry.sleepData?.sleepTimeSeconds;
+          const sleepScore = entry.sleepScores?.overall?.value ?? entry.sleepScore ?? entry.overallSleepScore;
+          const sleepQuality = entry.sleepScores?.overall?.qualifierKey ?? entry.sleepQualityTypePK ?? entry.sleepResultType;
+          const deepSecs = entry.deepSleepSeconds ?? entry.sleepData?.deepSleepSeconds;
+          const remSecs = entry.remSleepSeconds ?? entry.sleepData?.remSleepSeconds;
+          const lightSecs = entry.lightSleepSeconds ?? entry.sleepData?.lightSleepSeconds;
+          const awakeSecs = entry.awakeSleepSeconds ?? entry.sleepData?.awakeSleepSeconds;
+
+          if (sleepSecs != null) garminData.sleepDurationMins = Math.round(sleepSecs / 60);
+          if (sleepScore != null) garminData.sleepScore = sleepScore;
+          if (sleepQuality != null) garminData.sleepQuality = sleepQuality;
+          if (deepSecs != null) garminData.deepSleepMins = Math.round(deepSecs / 60);
+          if (remSecs != null) garminData.remSleepMins = Math.round(remSecs / 60);
+          if (lightSecs != null) garminData.lightSleepMins = Math.round(lightSecs / 60);
+          if (awakeSecs != null) garminData.awakeMins = Math.round(awakeSecs / 60);
+
           if (Object.keys(garminData).length === 0) { skipped++; return; }
           const result = mergeGarminIntoLog(ds, garminData);
           if (result === 'added') added++; else updated++;
@@ -1807,11 +1836,12 @@
         localStorage.setItem('uplift_log', JSON.stringify(log));
         recordGarminSync();
         input.value = '';
-        showGarminStatus(`Done! ${added} new days added, ${updated} existing entries enriched with HR & stress data. ${skipped ? skipped + ' entries skipped (no usable data).' : ''}`, false, true);
+        const type = isSleepFile ? 'sleep' : 'HR & stress';
+        showGarminStatus(`Done! ${added} new days added, ${updated} existing entries enriched with ${type} data. ${skipped ? skipped + ' entries skipped (no usable data).' : ''}`, false, true);
         updateGarminBadge();
         renderSyncBanners();
       } catch(err) {
-        showGarminStatus('Could not read this file. Make sure it\'s a Garmin UDSFile JSON from your data export.', true, false);
+        showGarminStatus('Could not read this file. Make sure it\'s a Garmin UDSFile or sleep JSON from your data export.', true, false);
       }
     };
     reader.readAsText(file);
