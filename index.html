@@ -79,9 +79,9 @@
   body.night-mode .phase-btn.sel-luteal     { background: #1E1A3E; border-color: #5A4A9E; }
   body.night-mode .chip.selected { background: #1E3A6E; border-color: #5A8ACE; color: #A8C4F0; }
   body.night-mode .cat-btn.active { background: #1A2A4A; border-color: #5A8ACE; }
-  body.night-mode .cat-btn.done  { background: #3A1A2E; border-color: transparent; }
-  body.night-mode .cat-btn.done .cat-icon { color: #F0BCDC; }
-  body.night-mode .cat-btn.done .cat-label { color: #F0BCDC; }
+  body.night-mode .cat-btn.done  { background: #1E3A6E; border-color: transparent; }
+  body.night-mode .cat-btn.done .cat-icon { color: #A8C4F0; }
+  body.night-mode .cat-btn.done .cat-label { color: #A8C4F0; }
   body.night-mode .sync-banner.garmin { background: #0E2244; border-color: #3A5A9E; color: #7BAAD8; }
   body.night-mode .sync-banner.loseit { background: #1E1A3E; border-color: #5A4A9E; color: #B8B0E8; }
   body.night-mode .rec-tag.iron     { background: #1E1A3E; color: #B8B0E8; }
@@ -102,10 +102,12 @@
   body.night-mode .phase-banner.luteal .phase-banner-text h3 { color: #C8B0F0; }
   body.night-mode .phase-banner.luteal .phase-banner-text p  { color: #A890D0; }
   body.night-mode input[type="range"] { background: #1E3A6E; }
-  body.night-mode input[type="range"]::-webkit-slider-thumb { background: #7B9ED9; }
-  body.night-mode input[type="range"]::-moz-range-thumb { background: #7B9ED9; }
+  body.night-mode input[type="range"]::-webkit-slider-thumb { background: #7B9ED9; border: none; box-shadow: none; }
+  body.night-mode input[type="range"]::-moz-range-thumb { background: #7B9ED9; border: none; }
   body.night-mode input[type="range"]::-webkit-slider-runnable-track { background: #1E3A6E; }
 
+  body.night-mode .uplift-logo line { stroke: #7B9ED9; }
+  body.night-mode .uplift-logo path { fill: #7B9ED9; }
   #star-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0; transition: opacity 1s ease; }
   body.night-mode #star-canvas { opacity: 1; }
   #app { position: relative; z-index: 1; }
@@ -164,6 +166,7 @@
   .scroll-area {
     flex: 1; min-height: 0; overflow-y: auto; padding: 0 16px calc(80px + env(safe-area-inset-bottom));
     -webkit-overflow-scrolling: touch;
+    background: var(--cream);
   }
 
   @media (min-width: 500px) {
@@ -371,9 +374,9 @@
   .cat-btn.done { background: #E8908E; border-color: transparent; }
   .cat-btn.done .cat-icon { color: #5C1018; }
   .cat-btn.done .cat-label { color: #5C1018; }
-  body.night-mode .cat-btn.done { background: #5E2848; border-color: transparent; }
-  body.night-mode .cat-btn.done .cat-icon { color: #F0BCDC; }
-  body.night-mode .cat-btn.done .cat-label { color: #F0BCDC; }
+  body.night-mode .cat-btn.done { background: #1E3A6E; border-color: transparent; }
+  body.night-mode .cat-btn.done .cat-icon { color: #A8C4F0; }
+  body.night-mode .cat-btn.done .cat-label { color: #A8C4F0; }
   .cat-icon { color: var(--text-soft); display: flex; align-items: center; justify-content: center; }
   .cat-label { font-size: 16px; font-weight: 500; color: var(--text-soft); }
   .cat-panel { animation: fadeIn 0.2s ease; }
@@ -473,7 +476,8 @@
 
   /* ── RANGE SLIDER ── */
   input[type="range"] { -webkit-appearance: none; appearance: none; height: 4px; background: var(--blush); border-radius: 2px; outline: none; cursor: pointer; vertical-align: middle; }
-  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--terra); cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(196,107,74,0.3); margin-top: -8px; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--terra); cursor: pointer; border: none; margin-top: -8px; }
+  input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--terra); cursor: pointer; border: none; }
   input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--terra); cursor: pointer; border: 2px solid #fff; }
   input[type="range"]::-webkit-slider-runnable-track { background: var(--blush); border-radius: 2px; height: 4px; }
   input[type="range"]::-moz-range-track { background: var(--blush); border-radius: 2px; height: 4px; }
@@ -512,7 +516,7 @@
   <div class="screen active" id="screen-checkin">
     <div class="page-header">
       <div style="display:flex;align-items:center;gap:10px;">
-        <svg width="28" height="28" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="28" height="28" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" class="uplift-logo">
           <line x1="4" y1="22" x2="26" y2="22" stroke="#C46B4A" stroke-width="1.5" stroke-linecap="round"/>
           <line x1="15" y1="22" x2="15" y2="4" stroke="#C46B4A" stroke-width="1.5" stroke-linecap="round"/>
           <path d="M15 19 Q8 16 10 11 Q13 14 15 19z" fill="#C46B4A"/>
