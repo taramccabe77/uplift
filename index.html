@@ -309,7 +309,7 @@
   .tag-garmin    { background: #543828; color: #EDD8C8; }
   .tag-hr        { background: #543828; color: #EDD8C8; }
   .tag-stress    { background: #543828; color: #EDD8C8; }
-  .tag-dailyactivity { background: #8A5840; color: #F5EDE8; }
+  .tag-dailyactivity { background: #6A4030; color: #F5EDE8; }
 
   /* ── INSIGHTS ── */
   .insight-box {
@@ -1484,19 +1484,12 @@
       </div>
     </div>`;
 
-    const tagIcons = {
-      iron:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
-      energy:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>`,
-      movement: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3" r="1.5"/><line x1="12" y1="4.5" x2="12" y2="13"/><line x1="12" y1="7" x2="5" y2="4"/><line x1="12" y1="7" x2="19" y2="4"/><line x1="12" y1="13" x2="5" y2="20"/><line x1="12" y1="13" x2="19" y2="20"/></svg>`,
-      rest:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`,
-      selfcare: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
-    };
-    const tagLabels = {
-      iron:     'Supports iron levels',
-      energy:   'Supports energy',
-      movement: 'Supports movement',
-      rest:     'Supports rest',
-      selfcare: 'Supports self care',
+    const catIcons = {
+      iron:     `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>`,
+      energy:   `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+      movement: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>`,
+      rest:     `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`,
+      selfcare: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>`,
     };
 
     function renderSection(title, recs) {
@@ -1508,7 +1501,9 @@
           <div class="rec-body">
             <div class="rec-title">${r.title}</div>
             <div class="rec-desc">${r.desc}</div>
-            <span class="rec-tag ${r.tag}">${tagIcons[r.tag] || ''}${tagLabels[r.tag] || r.tag}</span>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--cream);color:var(--text-soft);">${catIcons[r.tag] || ''}</span>
+            </div>
           </div>
         </div>`).join('')}
       </div>`;
@@ -1582,7 +1577,7 @@
       const tags = [
         // Period
         e.flow && e.flow !== 'None'  ? t(e.flow + ' flow', 'tag-flow') : '',
-        e.phase                       ? t(e.phase, 'tag-phase') : '',
+        e.phase                       ? t(e.phase.charAt(0).toUpperCase() + e.phase.slice(1), 'tag-phase') : '',
         // Symptoms
         ...(e.symptoms || []).map(s => t(s, 'tag-sym')),
         // Food
@@ -1599,7 +1594,7 @@
         ...(e.dailyActivities || []).map(a => t(a, 'tag-dailyactivity')),
         // Garmin
         g.restingHR                   ? t('♥ ' + g.restingHR + ' bpm', 'tag-hr') : '',
-        g.avgStress != null           ? t('stress ' + g.avgStress, 'tag-stress') : '',
+        g.avgStress != null           ? t('Stress ' + g.avgStress, 'tag-stress') : '',
         g.actType                     ? t('⌚ ' + g.actType + (g.duration ? ' · ' + g.duration : ''), 'tag-garmin') : '',
         // Lose It
         e.loseIt                      ? t(e.loseIt.calories + ' kcal · ' + e.loseIt.protein + 'g protein', 'tag-nutrition') : '',
