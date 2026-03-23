@@ -280,17 +280,23 @@
   .save-btn:active { transform: scale(0.98); }
 
   /* ── TRENDS ── */
-  .metric-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
-  .metric-card {
+  .metric-row { display: none; }
+  .metric-summary {
     background: var(--warm-white); border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm); padding: 14px;
+    border-radius: var(--radius-sm); padding: 12px 16px;
+    display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 12px;
   }
-  .metric-num { font-family: var(--font-serif); font-size: 30px; color: var(--terra); }
-  .metric-label { font-size: 16px; color: var(--text-soft); margin-top: 3px; }
-  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 70px; padding-top: 4px; }
-  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end; }
-  .bar-fill { width: 100%; border-radius: 4px 4px 0 0; min-height: 3px; transition: height 0.4s ease; }
-  .bar-day { font-size: 16px; color: var(--text-hint); }
+  .metric-item {
+    display: flex; flex-direction: column; gap: 1px;
+    padding: 6px 14px 6px 0; flex: 1; min-width: 80px;
+  }
+  .metric-item + .metric-item { border-left: 0.5px solid var(--border); padding-left: 14px; }
+  .metric-num { font-family: var(--font-serif); font-size: 22px; color: var(--terra); }
+  .metric-label { font-size: 12px; color: var(--text-soft); }
+  .line-chart { width: 100%; height: 80px; display: block; overflow: visible; }
+  .line-chart .line-path { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .line-chart .line-dot { r: 3; }
+  .line-chart .line-label { font-size: 10px; fill: var(--text-hint); font-family: var(--font-sans); }
   .log-item { padding: 12px 0; border-bottom: 0.5px solid var(--border); }
   .log-item:last-child { border-bottom: none; }
   .log-date { font-size: 16px; color: var(--text-hint); margin-bottom: 6px; }
@@ -829,19 +835,19 @@
         <button id="toggle-all" onclick="setTrendRange(0)" class="trend-toggle">All time</button>
       </div>
 
-      <div class="metric-row" id="metric-row"></div>
+      <div class="metric-summary" id="metric-row"></div>
 
       <div class="card">
         <div id="energy-chart-label" class="card-label">Energy</div>
-        <div class="bar-chart" id="bar-chart"></div>
+        <svg id="bar-chart" class="line-chart"></svg>
       </div>
       <div class="card" id="sleep-chart-card">
         <div id="sleep-chart-label" class="card-label">Sleep</div>
-        <div class="bar-chart" id="sleep-chart"></div>
+        <svg id="sleep-chart" class="line-chart"></svg>
       </div>
       <div class="card" id="stress-chart-card">
         <div id="stress-chart-label" class="card-label">Stress</div>
-        <div class="bar-chart" id="stress-chart"></div>
+        <svg id="stress-chart" class="line-chart"></svg>
       </div>
       <div class="card" id="cycle-chart-card" style="display:none;">
         <div class="card-label">Cycle phases</div>
@@ -849,11 +855,11 @@
       </div>
       <div class="card" id="nutrition-chart-card" style="display:none;">
         <div id="nutrition-chart-label" class="card-label">Calories</div>
-        <div class="bar-chart" id="nutrition-chart"></div>
+        <svg id="nutrition-chart" class="line-chart"></svg>
       </div>
       <div class="card" id="steps-chart-card" style="display:none;">
         <div id="steps-chart-label" class="card-label">Steps</div>
-        <div class="bar-chart" id="steps-chart"></div>
+        <svg id="steps-chart" class="line-chart"></svg>
       </div>
       <div class="card" id="exercise-chart-card" style="display:none;">
         <div id="exercise-chart-label" class="card-label">Exercise</div>
@@ -1678,108 +1684,149 @@
       return s;
     })();
     row.innerHTML = `
-      <div class="metric-card"><div class="metric-num">${total}</div><div class="metric-label">Total check-ins</div></div>
-      <div class="metric-card"><div class="metric-num">${streak}</div><div class="metric-label">Day streak</div></div>
-      <div class="metric-card"><div class="metric-num">${entries.length ? Math.round(highEnergy / entries.length * 100) : 0}%</div><div class="metric-label">High energy days</div></div>
-      ${avgSleep ? `<div class="metric-card"><div class="metric-num">${avgSleep}h</div><div class="metric-label">Avg sleep</div></div>` : ''}
-      ${avgCals ? `<div class="metric-card"><div class="metric-num">${avgCals}</div><div class="metric-label">Avg calories</div></div>` : ''}
-      ${avgSteps ? `<div class="metric-card"><div class="metric-num">${avgSteps}</div><div class="metric-label">Avg steps</div></div>` : ''}
+      <div class="metric-item"><div class="metric-num">${total}</div><div class="metric-label">Check-ins</div></div>
+      <div class="metric-item"><div class="metric-num">${streak}</div><div class="metric-label">Day streak</div></div>
+      <div class="metric-item"><div class="metric-num">${entries.length ? Math.round(highEnergy / entries.length * 100) : 0}%</div><div class="metric-label">High energy</div></div>
+      ${avgSleep ? `<div class="metric-item"><div class="metric-num">${avgSleep}h</div><div class="metric-label">Avg sleep</div></div>` : ''}
+      ${avgCals ? `<div class="metric-item"><div class="metric-num">${avgCals}</div><div class="metric-label">Avg kcal</div></div>` : ''}
+      ${avgSteps ? `<div class="metric-item"><div class="metric-num">${avgSteps}</div><div class="metric-label">Avg steps</div></div>` : ''}
     `;
   }
 
+  // ── Shared SVG line chart renderer ──
+  function renderLineChart(svgEl, data, getValue, color, opts = {}) {
+    const W = svgEl.parentElement ? (svgEl.parentElement.clientWidth - 32 || 300) : 300;
+    const H = 80;
+    const padL = 4, padR = 4, padT = 8, padB = 20;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+    svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svgEl.setAttribute('width', W);
+    svgEl.setAttribute('height', H);
+    svgEl.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    const points = data.map((d, i) => ({ i, val: getValue(d), d }));
+    const vals = points.map(p => p.val).filter(v => v != null && v > 0);
+    if (!vals.length) return false;
+    const minV = opts.minVal !== undefined ? opts.minVal : Math.min(...vals) * 0.85;
+    const maxV = opts.maxVal !== undefined ? opts.maxVal : Math.max(...vals) * 1.05;
+    const range = maxV - minV || 1;
+    const n = points.length;
+    const toX = i => padL + (i / Math.max(n - 1, 1)) * chartW;
+    const toY = v => padT + chartH - ((v - minV) / range) * chartH;
+
+    // Phase background bands
+    if (opts.showPhase) {
+      let bandStart = null, bandPhase = null;
+      const flushBand = endIdx => {
+        if (bandPhase && bandStart !== null) {
+          const isNight = document.body.classList.contains('night-mode');
+          const pc = phaseColor(bandPhase, isNight);
+          if (pc) {
+            const rect = document.createElementNS(ns, 'rect');
+            rect.setAttribute('x', toX(bandStart));
+            rect.setAttribute('y', padT);
+            rect.setAttribute('width', Math.max(toX(endIdx) - toX(bandStart), 1));
+            rect.setAttribute('height', chartH);
+            rect.setAttribute('fill', pc);
+            rect.setAttribute('opacity', '0.18');
+            svgEl.appendChild(rect);
+          }
+        }
+      };
+      points.forEach((p, i) => {
+        const phase = p.d.entry?.phase;
+        if (phase !== bandPhase) { flushBand(i); bandStart = i; bandPhase = phase; }
+        if (i === points.length - 1) flushBand(i + 1);
+      });
+    }
+
+    // Build path segments (breaks on missing data)
+    let pathD = '', inLine = false;
+    points.forEach(p => {
+      if (p.val != null && p.val > 0) {
+        const x = toX(p.i), y = toY(p.val);
+        pathD += inLine ? ` L${x.toFixed(1)},${y.toFixed(1)}` : `M${x.toFixed(1)},${y.toFixed(1)}`;
+        inLine = true;
+      } else { inLine = false; }
+    });
+    if (pathD) {
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', pathD);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('stroke-linejoin', 'round');
+      svgEl.appendChild(path);
+    }
+
+    // Start dot + date, end dot + date
+    const firstP = points.find(p => p.val > 0);
+    const lastP  = [...points].reverse().find(p => p.val > 0);
+    [firstP, lastP].filter(Boolean).forEach(p => {
+      const isLast = p === lastP && p !== firstP;
+      const x = toX(p.i), y = toY(p.val);
+      const dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.setAttribute('r', '3');
+      dot.setAttribute('fill', color);
+      svgEl.appendChild(dot);
+      const dateStr = p.d.day.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const txt = document.createElementNS(ns, 'text');
+      txt.setAttribute('x', isLast ? Math.min(x, W - padR - 2) : Math.max(x, padL));
+      txt.setAttribute('y', H - 4);
+      txt.setAttribute('text-anchor', isLast ? 'end' : 'start');
+      txt.setAttribute('font-size', '9');
+      txt.setAttribute('fill', 'var(--text-hint)');
+      txt.setAttribute('font-family', 'sans-serif');
+      txt.textContent = dateStr;
+      svgEl.appendChild(txt);
+    });
+    return true;
+  }
+
   function renderBarChart() {
-    const chart = document.getElementById('bar-chart');
+    const svg   = document.getElementById('bar-chart');
     const label = document.getElementById('energy-chart-label');
     const isNight = document.body.classList.contains('night-mode');
-    const energyColors = isNight
-      ? { Low: '#4A3860', Moderate: '#5A4820', High: '#1A4030' }
-      : { Low: '#C39BD3', Moderate: '#D4A054', High: '#6B9E7A' };
-    const eMap = { Low: 1, Moderate: 2, High: 3 };
-    const days30 = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-    const data = getDaysData(trendRange);
-    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
-    label.textContent = `Energy — ${rangeLabel}`;
-    chart.innerHTML = '';
-    chart.style.height = '70px';
-
-    const showEvery = trendRange <= 30 ? 1 : trendRange <= 180 ? 7 : 30;
-    data.forEach(({ day, entry }, idx) => {
-      const val = entry ? (eMap[entry.energy] || 0) : 0;
-      const phase = entry?.phase;
-      const col = document.createElement('div'); col.className = 'bar-col';
-      const bar = document.createElement('div'); bar.className = 'bar-fill';
-      bar.style.height = val ? (val * 20) + 'px' : '3px';
-      bar.style.background = val
-        ? (phase ? (phaseColor(phase, isNight) || energyColors[entry.energy]) : energyColors[entry.energy])
-        : 'var(--border)';
-      if (idx % showEvery === 0 || idx === data.length - 1) {
-        const lbl = document.createElement('div'); lbl.className = 'bar-day';
-        lbl.textContent = trendRange === 7 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][day.getDay()] : (day.getDate() === 1 || idx === 0 ? day.toLocaleDateString('en-GB', { month: 'short' }) : day.getDate());
-        col.appendChild(bar); col.appendChild(lbl);
-      } else {
-        col.appendChild(bar);
-      }
-      chart.appendChild(col);
-    });
+    const data  = getDaysData(trendRange);
+    const eMap  = { Low: 1, Moderate: 2, High: 3 };
+    label.textContent = `Energy — ${trendRange === 0 ? 'all time' : 'last ' + trendRange + ' days'}`;
+    renderLineChart(svg, data, d => eMap[d.entry?.energy] || null,
+      isNight ? '#7B9ED9' : '#C46B4A',
+      { showPhase: true, minVal: 0, maxVal: 3 });
   }
 
   function renderSleepChart() {
-    const chart = document.getElementById('sleep-chart');
+    const svg   = document.getElementById('sleep-chart');
     const card  = document.getElementById('sleep-chart-card');
     const label = document.getElementById('sleep-chart-label');
     const isNight = document.body.classList.contains('night-mode');
-    const data = getDaysData(trendRange);
+    const data  = getDaysData(trendRange);
     const hasData = data.some(({ entry }) => entry?.sleepHours || entry?.garmin?.sleepDurationMins);
     if (!hasData) { card.style.display = 'none'; return; }
     card.style.display = 'block';
-    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
-    label.textContent = `Sleep — ${rangeLabel}`;
-    chart.innerHTML = '';
-    const showEvery = trendRange <= 30 ? 1 : trendRange <= 180 ? 7 : 30;
-    data.forEach(({ day, entry }, idx) => {
-      const hrs = entry ? (entry.sleepHours || (entry.garmin?.sleepDurationMins ? entry.garmin.sleepDurationMins / 60 : 0)) : 0;
-      const phase = entry?.phase;
-      const col = document.createElement('div'); col.className = 'bar-col';
-      const bar = document.createElement('div'); bar.className = 'bar-fill';
-      bar.style.height = hrs ? Math.max((hrs / 10) * 60, 3) + 'px' : '3px';
-      bar.style.background = hrs ? (phase ? (phaseColor(phase, isNight) || (isNight ? '#1A3A6A' : '#7A9EC8')) : (isNight ? '#1A3A6A' : '#7A9EC8')) : 'var(--border)';
-      if (idx % showEvery === 0 || idx === data.length - 1) {
-        const lbl = document.createElement('div'); lbl.className = 'bar-day';
-        lbl.textContent = trendRange <= 30 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][day.getDay()] : (day.getDate() === 1 || idx === 0 ? day.toLocaleDateString('en-GB', { month: 'short' }) : day.getDate());
-        col.appendChild(bar); col.appendChild(lbl);
-      } else { col.appendChild(bar); }
-      chart.appendChild(col);
-    });
+    label.textContent = `Sleep — ${trendRange === 0 ? 'all time' : 'last ' + trendRange + ' days'}`;
+    renderLineChart(svg, data,
+      d => d.entry?.sleepHours || (d.entry?.garmin?.sleepDurationMins ? d.entry.garmin.sleepDurationMins / 60 : null),
+      isNight ? '#A8C4F0' : '#7A9EC8',
+      { showPhase: true });
   }
 
   function renderStressChart() {
-    const chart = document.getElementById('stress-chart');
+    const svg   = document.getElementById('stress-chart');
     const card  = document.getElementById('stress-chart-card');
     const label = document.getElementById('stress-chart-label');
     const isNight = document.body.classList.contains('night-mode');
-    const data = getDaysData(trendRange);
+    const data  = getDaysData(trendRange);
     const hasData = data.some(({ entry }) => entry?.garmin?.avgStress);
     if (!hasData) { card.style.display = 'none'; return; }
     card.style.display = 'block';
-    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
-    label.textContent = `Stress — ${rangeLabel}`;
-    chart.innerHTML = '';
-    const showEvery = trendRange <= 30 ? 1 : trendRange <= 180 ? 7 : 30;
-    data.forEach(({ day, entry }, idx) => {
-      const stress = entry?.garmin?.avgStress || 0;
-      const col = document.createElement('div'); col.className = 'bar-col';
-      const bar = document.createElement('div'); bar.className = 'bar-fill';
-      bar.style.height = stress ? Math.max((stress / 100) * 60, 3) + 'px' : '3px';
-      bar.style.background = stress
-        ? (stress < 33 ? (isNight ? '#1A4030' : '#6B9E7A') : stress < 66 ? (isNight ? '#5A4820' : '#D4A054') : (isNight ? '#5A2020' : '#C45E6A'))
-        : 'var(--border)';
-      if (idx % showEvery === 0 || idx === data.length - 1) {
-        const lbl = document.createElement('div'); lbl.className = 'bar-day';
-        lbl.textContent = trendRange <= 30 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][day.getDay()] : (day.getDate() === 1 || idx === 0 ? day.toLocaleDateString('en-GB', { month: 'short' }) : day.getDate());
-        col.appendChild(bar); col.appendChild(lbl);
-      } else { col.appendChild(bar); }
-      chart.appendChild(col);
-    });
+    label.textContent = `Stress — ${trendRange === 0 ? 'all time' : 'last ' + trendRange + ' days'}`;
+    renderLineChart(svg, data,
+      d => d.entry?.garmin?.avgStress || null,
+      isNight ? '#C8B0F0' : '#9B7BB8',
+      { showPhase: true, minVal: 0, maxVal: 100 });
   }
 
   function renderCycleChart() {
@@ -1960,62 +2007,35 @@
   }
 
   function renderStepsChart() {
-    const chart = document.getElementById('steps-chart');
+    const svg   = document.getElementById('steps-chart');
     const card  = document.getElementById('steps-chart-card');
     const label = document.getElementById('steps-chart-label');
     const isNight = document.body.classList.contains('night-mode');
-    const data = getDaysData(trendRange);
+    const data  = getDaysData(trendRange);
     const hasData = data.some(({ entry }) => entry?.garmin?.steps);
     if (!hasData) { card.style.display = 'none'; return; }
     card.style.display = 'block';
-    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
-    label.textContent = `Steps — ${rangeLabel}`;
-    chart.innerHTML = '';
-    const maxSteps = Math.max(...data.map(({ entry }) => entry?.garmin?.steps || 0));
-    const showEvery = trendRange <= 30 ? 1 : trendRange <= 180 ? 7 : 30;
-    data.forEach(({ day, entry }, idx) => {
-      const steps = entry?.garmin?.steps || 0;
-      const col = document.createElement('div'); col.className = 'bar-col';
-      const bar = document.createElement('div'); bar.className = 'bar-fill';
-      bar.style.height = steps ? Math.max((steps / maxSteps) * 60, 3) + 'px' : '3px';
-      bar.style.background = steps ? (isNight ? '#1A3A5A' : '#5A8AC8') : 'var(--border)';
-      if (idx % showEvery === 0 || idx === data.length - 1) {
-        const lbl = document.createElement('div'); lbl.className = 'bar-day';
-        lbl.textContent = trendRange <= 30 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][day.getDay()] : (day.getDate() === 1 || idx === 0 ? day.toLocaleDateString('en-GB', { month: 'short' }) : day.getDate());
-        col.appendChild(bar); col.appendChild(lbl);
-      } else { col.appendChild(bar); }
-      chart.appendChild(col);
-    });
+    label.textContent = `Steps — ${trendRange === 0 ? 'all time' : 'last ' + trendRange + ' days'}`;
+    renderLineChart(svg, data,
+      d => d.entry?.garmin?.steps || null,
+      isNight ? '#7B9ED9' : '#5A8AC8',
+      { showPhase: true, formatLabel: v => Math.round(v).toLocaleString() });
   }
 
   function renderNutritionChart() {
-    const chart = document.getElementById('nutrition-chart');
+    const svg   = document.getElementById('nutrition-chart');
     const card  = document.getElementById('nutrition-chart-card');
     const label = document.getElementById('nutrition-chart-label');
     const isNight = document.body.classList.contains('night-mode');
-    const data = getDaysData(trendRange);
+    const data  = getDaysData(trendRange);
     const hasData = data.some(({ entry }) => entry?.loseIt?.calories);
     if (!hasData) { card.style.display = 'none'; return; }
     card.style.display = 'block';
-    const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
-    label.textContent = `Calories — ${rangeLabel}`;
-    chart.innerHTML = '';
-    const maxCals = Math.max(...data.map(({ entry }) => entry?.loseIt?.calories || 0));
-    const showEvery = trendRange <= 30 ? 1 : trendRange <= 180 ? 7 : 30;
-    data.forEach(({ day, entry }, idx) => {
-      const cals = entry?.loseIt?.calories || 0;
-      const phase = entry?.phase;
-      const col = document.createElement('div'); col.className = 'bar-col';
-      const bar = document.createElement('div'); bar.className = 'bar-fill';
-      bar.style.height = cals ? Math.max((cals / maxCals) * 60, 3) + 'px' : '3px';
-      bar.style.background = cals ? (phase ? (phaseColor(phase, isNight) || (isNight ? '#4A3020' : '#C4885A')) : (isNight ? '#4A3020' : '#C4885A')) : 'var(--border)';
-      if (idx % showEvery === 0 || idx === data.length - 1) {
-        const lbl = document.createElement('div'); lbl.className = 'bar-day';
-        lbl.textContent = trendRange <= 30 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][day.getDay()] : (day.getDate() === 1 || idx === 0 ? day.toLocaleDateString('en-GB', { month: 'short' }) : day.getDate());
-        col.appendChild(bar); col.appendChild(lbl);
-      } else { col.appendChild(bar); }
-      chart.appendChild(col);
-    });
+    label.textContent = `Calories — ${trendRange === 0 ? 'all time' : 'last ' + trendRange + ' days'}`;
+    renderLineChart(svg, data,
+      d => d.entry?.loseIt?.calories || null,
+      isNight ? '#F0C8A0' : '#C4885A',
+      { showPhase: true });
   }
 
   function renderExerciseChart() {
