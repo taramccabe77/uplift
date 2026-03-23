@@ -296,20 +296,20 @@
   .log-date { font-size: 16px; color: var(--text-hint); margin-bottom: 6px; }
   .log-tags { display: flex; flex-wrap: wrap; gap: 5px; }
   .tag { display: inline-block; font-size: 15px; padding: 3px 9px; border-radius: 12px; font-weight: 500; }
-  .tag-phase     { background: #D4734A; color: #2E0D02; }
-  .tag-flow      { background: #D4734A; color: #2E0D02; }
-  .tag-food      { background: #F2C9A8; color: #6B2E12; }
-  .tag-nutrition { background: #F2C9A8; color: #6B2E12; }
+  .tag-phase     { background: #C46B4A; color: #2E0D02; }
+  .tag-flow      { background: #C46B4A; color: #2E0D02; }
+  .tag-food      { background: #C4885A; color: #2E0D02; }
+  .tag-nutrition { background: #C4885A; color: #2E0D02; }
   .tag-sym       { background: #8C3828; color: #F7E2DC; }
   .tag-dream     { background: #8C3828; color: #F7E2DC; }
-  .tag-sleep     { background: #EDD0BC; color: #5C2C18; }
+  .tag-sleep     { background: #7A5A48; color: #F5EDE8; }
   .tag-exercise  { background: #C45E6A; color: #F7E0EA; }
-  .tag-mood      { background: #E8A898; color: #5C2218; }
-  .tag-energy    { background: #E8A898; color: #5C2218; }
+  .tag-mood      { background: #A85870; color: #F7E0EA; }
+  .tag-energy    { background: #A85870; color: #F7E0EA; }
   .tag-garmin    { background: #543828; color: #EDD8C8; }
   .tag-hr        { background: #543828; color: #EDD8C8; }
   .tag-stress    { background: #543828; color: #EDD8C8; }
-  .tag-dailyactivity { background: #B8785A; color: #F5EDE8; }
+  .tag-dailyactivity { background: #8A5840; color: #F5EDE8; }
 
   /* ── INSIGHTS ── */
   .insight-box {
@@ -490,11 +490,12 @@
   /* ── TOAST ── */
   #toast {
     position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(10px);
-    background: var(--text-dark); color: #fff; padding: 10px 18px;
+    background: #2C1A12; color: #F5EBE2; padding: 10px 18px;
     border-radius: 20px; font-size: 15px; opacity: 0;
     transition: all 0.25s; pointer-events: none; z-index: 200; white-space: nowrap;
   }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  body.night-mode #toast { background: #1A2A4A; color: #E8F0FF; }
 
   /* ── CYCLE RING ── */
   .cycle-visual {
