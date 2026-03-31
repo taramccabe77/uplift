@@ -473,7 +473,10 @@
 
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+  #garmin-reminder { background: #FBF4E8; color: #8A5E1A; }
+
   /* ── EMPTY STATE ── */
+  .empty {
     text-align: center; padding: 40px 20px;
     color: var(--text-hint); font-size: 16px; line-height: 1.6;
   }
@@ -733,7 +736,7 @@
             <div class="card-label" style="margin-bottom:0;">Garmin Connect</div>
             <div id="garmin-badge" style="display:none;font-size:15px;font-weight:500;padding:3px 9px;border-radius:12px;background:var(--success-bg);color:#2D6B3E;"></div>
           </div>
-          <div id="garmin-reminder" style="display:none;background:#FBF4E8;border-radius:var(--radius-xs);padding:10px 12px;margin-bottom:12px;font-size:15px;color:#8A5E1A;line-height:1.5;">
+          <div id="garmin-reminder" style="display:none;border-radius:var(--radius-xs);padding:10px 12px;margin-bottom:12px;font-size:15px;line-height:1.5;">
             ⏰ Time for your weekly Garmin sync — it's been 7 days since your last sync.
           </div>
           <p style="font-size:15px;color:var(--text-soft);line-height:1.6;margin-bottom:14px;">Sync heart rate, stress, sleep, and steps directly — no file needed. Requires the sync server running on your PC.</p>
