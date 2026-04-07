@@ -955,7 +955,7 @@
           Uplift stores all your data locally on this device.<br>
           Nothing is shared with any server except AI insights<br>which go to Anthropic's API when you request them.
         </p>
-        <p style="font-size:13px;color:var(--text-hint);text-align:center;margin-top:16px;opacity:0.6;">Version 1.12 · 30 Mar 2026</p>
+        <p style="font-size:13px;color:var(--text-hint);text-align:center;margin-top:16px;opacity:0.6;">Version 1.13 · 7 Apr 2026</p>
       </div>
     </div>
   </div>
@@ -995,14 +995,21 @@
 
 <script>
   // ── STATE ──
-  let currentEntry = { phase: null, symptoms: [], food: null, energy: null };
+  let currentEntry = { phase: null, symptoms: [], food: [], sleep: [], exercise: [], mood: [], flow: null, discharge: null, energy: null, sleepHours: null, sleepNotes: [], dailyActivities: [] };
+  // Helper: always return field as array regardless of stored type (handles legacy scalar data)
+  function asArr(val) { if (!val) return []; return Array.isArray(val) ? val : [val]; }
   let log = [];
   let apiKey = '';
 
+  // Safe localStorage wrapper — silently returns null in sandboxed environments
+  function lsGet(key) { try { return lsGet(key); } catch(e) { return null; } }
+  function lsSet(key, val) { try { lsSet(key, val); } catch(e) {} }
+  function lsRemove(key) { try { lsRemove(key); } catch(e) {} }
+
   // ── INIT ──
   function init() {
-    try { log = JSON.parse(localStorage.getItem('uplift_log') || '[]'); } catch(e) { log = []; }
-    apiKey = localStorage.getItem('uplift_apikey') || '';
+    try { log = JSON.parse(lsGet('uplift_log') || '[]'); } catch(e) { log = []; }
+    apiKey = lsGet('uplift_apikey') || '';
     if (apiKey) document.getElementById('api-key-input').value = apiKey;
     setGreeting();
     updateLogCount();
@@ -1156,9 +1163,9 @@
 
   function renderSyncBanners() {
     const screens = ['checkin', 'trends', 'insights', 'foryou', 'settings'];
-    const lastGarmin = localStorage.getItem('uplift_last_garmin_sync');
-    const lastLoseIt = localStorage.getItem('uplift_last_loseit_sync');
-    const lastBackup = localStorage.getItem('uplift_last_backup');
+    const lastGarmin = lsGet('uplift_last_garmin_sync');
+    const lastLoseIt = lsGet('uplift_last_loseit_sync');
+    const lastBackup = lsGet('uplift_last_backup');
     const garminDue = !lastGarmin || Math.floor((new Date() - new Date(lastGarmin + 'T12:00:00')) / 86400000) >= 7;
     const loseItDue = !lastLoseIt || Math.floor((new Date() - new Date(lastLoseIt + 'T12:00:00')) / 86400000) >= 7;
     const backupDue = !lastBackup || Math.floor((new Date() - new Date(lastBackup + 'T12:00:00')) / 86400000) >= 30;
@@ -1293,10 +1300,17 @@
   }
 
   function selectFood(el, val) {
-    currentEntry.food = val;
-    document.querySelectorAll('.food-chip').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    markCategoryDone('food');
+    if (!currentEntry.food) currentEntry.food = [];
+    if (!Array.isArray(currentEntry.food)) currentEntry.food = [currentEntry.food];
+    if (currentEntry.food.includes(val)) {
+      currentEntry.food = currentEntry.food.filter(f => f !== val);
+      el.classList.remove('selected');
+    } else {
+      currentEntry.food.push(val);
+      el.classList.add('selected');
+    }
+    if (currentEntry.food.length > 0) markCategoryDone('food');
+    else document.querySelector('.cat-btn[onclick*="food"]')?.classList.remove('done');
   }
 
   function selectEnergy(el, val) {
@@ -1318,24 +1332,45 @@
   }
 
   function selectSleep(el, val) {
-    currentEntry.sleep = val;
-    document.querySelectorAll('.sleep-chip').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    markCategoryDone('sleep');
+    if (!currentEntry.sleep) currentEntry.sleep = [];
+    if (!Array.isArray(currentEntry.sleep)) currentEntry.sleep = [currentEntry.sleep];
+    if (currentEntry.sleep.includes(val)) {
+      currentEntry.sleep = currentEntry.sleep.filter(s => s !== val);
+      el.classList.remove('selected');
+    } else {
+      currentEntry.sleep.push(val);
+      el.classList.add('selected');
+    }
+    if (currentEntry.sleep.length > 0) markCategoryDone('sleep');
+    else document.querySelector('.cat-btn[onclick*="sleep"]')?.classList.remove('done');
   }
 
   function selectExercise(el, val) {
-    currentEntry.exercise = val;
-    document.querySelectorAll('.ex-chip').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    markCategoryDone('exercise');
+    if (!currentEntry.exercise) currentEntry.exercise = [];
+    if (!Array.isArray(currentEntry.exercise)) currentEntry.exercise = [currentEntry.exercise];
+    if (currentEntry.exercise.includes(val)) {
+      currentEntry.exercise = currentEntry.exercise.filter(e => e !== val);
+      el.classList.remove('selected');
+    } else {
+      currentEntry.exercise.push(val);
+      el.classList.add('selected');
+    }
+    if (currentEntry.exercise.length > 0) markCategoryDone('exercise');
+    else document.querySelector('.cat-btn[onclick*="exercise"]')?.classList.remove('done');
   }
 
   function selectMood(el, val) {
-    currentEntry.mood = val;
-    document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    markCategoryDone('activity');
+    if (!currentEntry.mood) currentEntry.mood = [];
+    if (!Array.isArray(currentEntry.mood)) currentEntry.mood = [currentEntry.mood];
+    if (currentEntry.mood.includes(val)) {
+      currentEntry.mood = currentEntry.mood.filter(m => m !== val);
+      el.classList.remove('selected');
+    } else {
+      currentEntry.mood.push(val);
+      el.classList.add('selected');
+    }
+    if (currentEntry.mood.length > 0) markCategoryDone('activity');
+    else document.querySelector('.cat-btn[onclick*="activity"]')?.classList.remove('done');
     inferCyclePhase();
   }
 
@@ -1345,8 +1380,8 @@
   // when the incoming value is non-null/non-empty.
   function mergeEntries(existing, incoming) {
     const merged = { ...existing };
-    const arrayFields = ['symptoms', 'sleepNotes', 'dailyActivities'];
-    const scalarFields = ['phase', 'food', 'energy', 'sleep', 'sleepHours', 'exercise', 'mood', 'flow', 'discharge', 'pms'];
+    const arrayFields = ['symptoms', 'sleepNotes', 'dailyActivities', 'food', 'sleep', 'exercise', 'mood'];
+    const scalarFields = ['phase', 'energy', 'sleepHours', 'flow', 'discharge', 'pms'];
     arrayFields.forEach(field => {
       const a = existing[field] || [];
       const b = incoming[field] || [];
@@ -1367,32 +1402,46 @@
     if (idx >= 0) {
       log[idx] = mergeEntries(log[idx], incoming);
     } else {
-      log.unshift({ date: ds, phase: null, symptoms: [], food: null, energy: null,
-        sleep: null, exercise: null, mood: null, flow: null, discharge: null,
-        sleepNotes: [], dailyActivities: [], ...incoming });
+      log.unshift({ date: ds, phase: null, symptoms: [], food: [], sleep: [], exercise: [], mood: [], flow: null, discharge: null,
+        sleepHours: null, energy: null, sleepNotes: [], dailyActivities: [], ...incoming });
     }
     log.sort((a, b) => b.date.localeCompare(a.date));
-    localStorage.setItem('uplift_log', JSON.stringify(log));
+    lsSet('uplift_log', JSON.stringify(log));
   }
 
   function saveEntry() {
-    if (!currentEntry.phase && !currentEntry.food && !currentEntry.energy && !currentEntry.sleep && !currentEntry.exercise && !currentEntry.mood && currentEntry.symptoms.length === 0 && (!currentEntry.dailyActivities || currentEntry.dailyActivities.length === 0)) {
+    const sleepHours = document.getElementById('sleep-hours-slider');
+    const sliderVal = sleepHours ? parseFloat(sleepHours.value) : null;
+    const sliderChanged = sliderVal !== null && sliderVal !== 7;
+
+    const hasData = currentEntry.phase ||
+      (Array.isArray(currentEntry.food) ? currentEntry.food.length > 0 : currentEntry.food) ||
+      (Array.isArray(currentEntry.energy) ? currentEntry.energy.length > 0 : currentEntry.energy) ||
+      (Array.isArray(currentEntry.sleep) ? currentEntry.sleep.length > 0 : currentEntry.sleep) ||
+      (Array.isArray(currentEntry.exercise) ? currentEntry.exercise.length > 0 : currentEntry.exercise) ||
+      (Array.isArray(currentEntry.mood) ? currentEntry.mood.length > 0 : currentEntry.mood) ||
+      currentEntry.symptoms.length > 0 ||
+      (currentEntry.dailyActivities && currentEntry.dailyActivities.length > 0) ||
+      currentEntry.flow || currentEntry.discharge ||
+      currentEntry.sleepNotes.length > 0 ||
+      sliderChanged;
+
+    if (!hasData) {
       showToast('Please fill in at least one field.');
       return;
     }
-    const sleepHours = document.getElementById('sleep-hours-slider');
-    if (currentEntry.sleep && sleepHours) currentEntry.sleepHours = parseFloat(sleepHours.value);
+    if (sliderChanged) currentEntry.sleepHours = sliderVal;
     const dateInput = document.getElementById('entry-date');
     const ds = dateInput && dateInput.value ? dateInput.value : new Date().toLocaleDateString('en-CA');
     upsertLogEntry(ds, JSON.parse(JSON.stringify(currentEntry)));
     resetForm();
     updateLogCount();
     showToast('Check-in saved for ' + formatDate(ds));
-    showScreen('trends');
+
   }
 
   function resetForm() {
-    currentEntry = { phase: null, symptoms: [], food: null, energy: null, sleep: null, exercise: null, mood: null, flow: null, discharge: null, sleepNotes: [], dailyActivities: [] };
+    currentEntry = { phase: null, symptoms: [], food: [], sleep: [], exercise: [], mood: [], flow: null, discharge: null, energy: null, sleepHours: null, sleepNotes: [], dailyActivities: [] };
     activeCategory = null;
     document.querySelectorAll('.cat-panel').forEach(p => p.style.display = 'none');
     document.querySelectorAll('.cat-btn').forEach(b => { b.classList.remove('active'); b.classList.remove('done'); });
@@ -1416,9 +1465,9 @@
     const pmsActive = recent.slice(0, 3).some(e => e.pms);
 
     // Exercise context
-    const recentExercise = recent.filter(e => e.exercise && e.exercise !== 'Rest day');
-    const daysSinceExercise = recent.findIndex(e => e.exercise && e.exercise !== 'Rest day');
-    const recentHardWorkouts = recent.slice(0, 7).filter(e => e.energy === 'High' && e.exercise).length;
+    const recentExercise = recent.filter(e => asArr(e.exercise).length > 0);
+    const daysSinceExercise = recent.findIndex(e => asArr(e.exercise).length > 0);
+    const recentHardWorkouts = recent.slice(0, 7).filter(e => e.energy === 'High' && asArr(e.exercise).length > 0).length;
     const exerciseInactive = daysSinceExercise > 5 || (recentExercise.length === 0);
     const daysSinceExerciseNum = daysSinceExercise === -1 ? 99 : daysSinceExercise;
     const garminStress = recent.slice(0, 3).map(e => e.garmin?.avgStress).filter(Boolean);
@@ -1426,7 +1475,7 @@
     const lowIron = phase === 'menstrual' || (recent.slice(0,3).some(e => ['Heavy','Medium'].includes(e.flow)));
 
     // Food gap context
-    const recentFoods = recent.slice(0, 7).map(e => e.food).filter(Boolean);
+    const recentFoods = recent.slice(0, 7).flatMap(e => asArr(e.food)).filter(Boolean);
     const skippedMealsRecently = recentFoods.filter(f => f === 'Skipped meals' || f === 'Irregular').length;
     const comfortFoodsOnly = recentFoods.length >= 3 && recentFoods.every(f => f === 'Comfort foods');
     const nourishingRecently = recentFoods.some(f => f === 'Nourishing' || f === 'Balanced');
@@ -1929,17 +1978,17 @@
       const proteinAvg = Math.round(calEntries.reduce((a, e) => a + (e.loseIt.protein || 0), 0) / calEntries.length);
       insights.push(`Averaging ${avg} calories and ${proteinAvg}g protein per day across logged days.`);
     }
-    const skipped = recent.filter(e => e.food === 'Skipped meals' || e.food === 'Irregular').length;
+    const skipped = recent.filter(e => asArr(e.food).some(f => f === 'Skipped meals' || f === 'Irregular')).length;
     if (skipped >= 3) insights.push(`You've logged skipped or irregular meals ${skipped} times recently — consistent eating supports your cycle.`);
 
     // Exercise frequency
-    const exerciseDays = recent.filter(e => e.exercise).length;
+    const exerciseDays = recent.filter(e => asArr(e.exercise).length > 0).length;
     if (exerciseDays >= 4) insights.push(`You moved ${exerciseDays} out of the last ${recent.length} logged days — great consistency.`);
     else if (recent.length >= 7 && exerciseDays <= 1) insights.push('Exercise has been light recently — even short walks can support energy and mood.');
 
     // Mood
-    const anxious = recent.filter(e => e.mood === 'Anxious').length;
-    const calm    = recent.filter(e => e.mood === 'Calm' || e.mood === 'Happy').length;
+    const anxious = recent.filter(e => asArr(e.mood).includes('Anxious')).length;
+    const calm    = recent.filter(e => asArr(e.mood).some(m => m === 'Calm' || m === 'Happy')).length;
     if (anxious >= 3) insights.push('Anxious has come up several times recently — worth noting if it feels persistent.');
     if (calm >= 5) insights.push('You\'ve been logging calm or happy moods regularly — things seem settled.');
 
@@ -1982,12 +2031,12 @@
     const label = document.getElementById('mood-chart-label');
     const el   = document.getElementById('mood-chart');
     const data = getDaysData(trendRange);
-    const moodEntries = data.map(({ entry }) => entry).filter(e => e?.mood);
+    const moodEntries = data.map(({ entry }) => entry).filter(e => asArr(e?.mood).length > 0);
     if (moodEntries.length < 3) { card.style.display = 'none'; return; }
     card.style.display = 'block';
     const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
     label.textContent = `Mood — ${rangeLabel}`;
-    const counts = moodEntries.reduce((a, e) => { a[e.mood] = (a[e.mood] || 0) + 1; return a; }, {});
+    const counts = moodEntries.reduce((a, e) => { asArr(e.mood).forEach(m => { a[m] = (a[m] || 0) + 1; }); return a; }, {});
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     const max = sorted[0][1];
     const moodColours = {
@@ -2041,12 +2090,12 @@
     const label = document.getElementById('exercise-chart-label');
     const el    = document.getElementById('exercise-chart');
     const data  = getDaysData(trendRange);
-    const exerciseEntries = data.map(({ entry }) => entry).filter(e => e?.exercise);
+    const exerciseEntries = data.map(({ entry }) => entry).filter(e => asArr(e?.exercise).length > 0);
     if (!exerciseEntries.length) { card.style.display = 'none'; return; }
     card.style.display = 'block';
     const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
     label.textContent = `Exercise — ${rangeLabel}`;
-    const counts = exerciseEntries.reduce((a, e) => { a[e.exercise] = (a[e.exercise] || 0) + 1; return a; }, {});
+    const counts = exerciseEntries.reduce((a, e) => { asArr(e.exercise).forEach(ex => { a[ex] = (a[ex] || 0) + 1; }); return a; }, {});
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
     const max = sorted[0][1];
     el.innerHTML = sorted.map(([ex, n]) => `
@@ -2064,12 +2113,12 @@
     const label = document.getElementById('food-chart-label');
     const el    = document.getElementById('food-chart');
     const data  = getDaysData(trendRange);
-    const foodEntries = data.map(({ entry }) => entry).filter(e => e?.food);
+    const foodEntries = data.map(({ entry }) => entry).filter(e => asArr(e?.food).length > 0);
     if (!foodEntries.length) { card.style.display = 'none'; return; }
     card.style.display = 'block';
     const rangeLabel = trendRange === 0 ? 'all time' : `last ${trendRange} days`;
     label.textContent = `Food quality — ${rangeLabel}`;
-    const counts = foodEntries.reduce((a, e) => { a[e.food] = (a[e.food] || 0) + 1; return a; }, {});
+    const counts = foodEntries.reduce((a, e) => { asArr(e.food).forEach(f => { a[f] = (a[f] || 0) + 1; }); return a; }, {});
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     const max = sorted[0][1];
     const foodColours = { Nourishing: '#6B9E7A', Balanced: '#7A9EC8', 'Comfort foods': '#D4A054', 'Skipped meals': '#C45E6A', Irregular: '#9B7BB8' };
@@ -2139,20 +2188,21 @@
       const t = (text, cls) => `<span class="tag ${cls}">${text}</span>`;
       const tags = [
         // Period
-        e.flow && e.flow !== 'None'  ? t(e.flow + ' flow', 'tag-flow') : '',
+        e.flow && e.flow !== 'None'  ? t(e.flow === 'Spotting' ? 'Spotting' : e.flow + ' flow', 'tag-flow') : '',
         e.phase                       ? t(e.phase.charAt(0).toUpperCase() + e.phase.slice(1), 'tag-phase') : '',
         // Symptoms
         ...(e.symptoms || []).map(s => t(s, 'tag-sym')),
         // Food
-        e.food                        ? t(e.food, 'tag-food') : '',
+        ...asArr(e.food).map(f => t(f, 'tag-food')),
         // Sleep
-        e.sleep                       ? t(e.sleep + ' sleep' + (e.sleepHours ? ' · ' + e.sleepHours + 'h' : ''), 'tag-sleep') : '',
+        ...asArr(e.sleep).map(s => t(s + ' sleep' + (e.sleepHours ? ' · ' + e.sleepHours + 'h' : ''), 'tag-sleep')),
+        ...(e.sleepHours && asArr(e.sleep).length === 0 ? [t(e.sleepHours + 'h sleep', 'tag-sleep')] : []),
         ...(e.sleepNotes || []).map(n => t(n, 'tag-dream')),
         // Exercise
-        e.exercise                    ? t(e.exercise, 'tag-exercise') : '',
+        ...asArr(e.exercise).map(ex => t(ex, 'tag-exercise')),
         // Feel
         e.energy                      ? t(e.energy + ' energy', 'tag-energy') : '',
-        e.mood                        ? t(e.mood, 'tag-mood') : '',
+        ...asArr(e.mood).map(m => t(m, 'tag-mood')),
         // Daily activities
         ...(e.dailyActivities || []).map(a => t(a, 'tag-dailyactivity')),
         // Garmin
@@ -2208,7 +2258,7 @@
         e.pms ? 'pms:true' : ''
       ].filter(Boolean).join(',');
       const loseItStr = e.loseIt ? `, nutrition=[calories:${e.loseIt.calories},protein:${e.loseIt.protein}g,carbs:${e.loseIt.carbs}g,fat:${e.loseIt.fat}g]` : '';
-      return `${e.date}: ${periodStr ? periodStr + ', ' : ''}symptoms=${(e.symptoms||[]).join(',')||'none'}, food=${e.food||'unknown'}, sleep=${e.sleep||'unknown'}${e.sleepHours ? '(' + e.sleepHours + 'hrs)' : ''}${(e.sleepNotes||[]).length ? ' notes:' + e.sleepNotes.join(',') : ''}, energy=${e.energy||'unknown'}, mood=${e.mood||'unknown'}, exercise=${e.exercise||'unknown'}${garminStr}${loseItStr}`;
+      return `${e.date}: ${periodStr ? periodStr + ', ' : ''}symptoms=${(e.symptoms||[]).join(',')||'none'}, food=${asArr(e.food).join('+')||'unknown'}, sleep=${asArr(e.sleep).join('+')||'unknown'}${e.sleepHours ? '(' + e.sleepHours + 'hrs)' : ''}${(e.sleepNotes||[]).length ? ' notes:' + e.sleepNotes.join(',') : ''}, energy=${e.energy||'unknown'}, mood=${asArr(e.mood).join('+')||'unknown'}, exercise=${asArr(e.exercise).join('+')||'unknown'}${garminStr}${loseItStr}`;
     }).join('\n');
     try {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2242,7 +2292,7 @@
   // ── SETTINGS ──
   function saveSettings() {
     apiKey = document.getElementById('api-key-input').value.trim();
-    localStorage.setItem('uplift_apikey', apiKey);
+    lsSet('uplift_apikey', apiKey);
     const msg = document.getElementById('saved-msg');
     msg.style.display = 'block';
     setTimeout(() => msg.style.display = 'none', 2500);
@@ -2252,14 +2302,14 @@
     const blob = new Blob([JSON.stringify(log, null, 2)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = 'uplift-data.json'; a.click();
-    localStorage.setItem('uplift_last_backup', new Date().toLocaleDateString('en-CA'));
+    lsSet('uplift_last_backup', new Date().toLocaleDateString('en-CA'));
     renderSyncBanners();
     showToast('Data exported — keep it somewhere safe!');
   }
 
   function clearData() {
     if (confirm('Clear all your Uplift data? This cannot be undone.')) {
-      log = []; localStorage.removeItem('uplift_log');
+      log = []; lsRemove('uplift_log');
       showToast('All data cleared');
     }
   }
@@ -2297,7 +2347,7 @@
         if (result === 'added') added++; else updated++;
       });
       log.sort((a, b) => b.date.localeCompare(a.date));
-      localStorage.setItem('uplift_log', JSON.stringify(log));
+      lsSet('uplift_log', JSON.stringify(log));
       recordGarminSync();
       status.style.color = 'var(--success)';
       status.textContent = `Synced! ${added} new days added, ${updated} existing entries updated.`;
@@ -2394,7 +2444,7 @@
           if (result === 'added') added++; else updated++;
         });
         log.sort((a, b) => b.date.localeCompare(a.date));
-        localStorage.setItem('uplift_log', JSON.stringify(log));
+        lsSet('uplift_log', JSON.stringify(log));
         recordGarminSync();
         input.value = '';
         const type = isSleepFile ? 'sleep' : 'HR & stress';
@@ -2524,8 +2574,8 @@
     function checkDone() {
       if (filesProcessed < files.length) return;
       log.sort((a, b) => b.date.localeCompare(a.date));
-      localStorage.setItem('uplift_log', JSON.stringify(log));
-      localStorage.setItem('uplift_last_loseit_sync', new Date().toLocaleDateString('en-CA'));
+      lsSet('uplift_log', JSON.stringify(log));
+      lsSet('uplift_last_loseit_sync', new Date().toLocaleDateString('en-CA'));
       input.value = '';
       status.style.color = 'var(--success)';
       status.textContent = `Done! ${totalAdded} new days added, ${totalUpdated} existing entries enriched with Lose It nutrition data.`;
@@ -2534,12 +2584,12 @@
   }
 
   function recordGarminSync() {
-    localStorage.setItem('uplift_last_garmin_sync', new Date().toLocaleDateString('en-CA'));
+    lsSet('uplift_last_garmin_sync', new Date().toLocaleDateString('en-CA'));
     renderSyncBanners();
   }
 
   function checkGarminReminder() {
-    const last = localStorage.getItem('uplift_last_garmin_sync');
+    const last = lsGet('uplift_last_garmin_sync');
     const reminder = document.getElementById('garmin-reminder');
     if (!reminder) return;
     if (!last) { reminder.style.display = 'block'; return; }
@@ -2548,7 +2598,7 @@
   }
 
   function updateGarminBadge() {
-    const last = localStorage.getItem('uplift_last_garmin_sync');
+    const last = lsGet('uplift_last_garmin_sync');
     const badge = document.getElementById('garmin-badge');
     if (!badge) return;
     if (last) { badge.style.display = 'block'; badge.textContent = 'Last sync: ' + formatDate(last); }
